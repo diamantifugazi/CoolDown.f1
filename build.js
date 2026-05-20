@@ -253,16 +253,31 @@ nav { position:fixed; top:0; left:0; right:0; z-index:500; height:60px; backgrou
 
 /* ===== COVER ===== */
 .art-cover-wrap {
-  background: var(--ink);
-  padding: 0;
+  background: var(--paper);
+  padding: 1.5rem 0;
+  position: relative;
+  overflow: hidden;
+}
+.art-cover-wrap::before {
+  content: '';
+  position: absolute;
+  inset: -80px;
+  background-image: var(--cover-img, none);
+  background-size: cover;
+  background-position: center;
+  filter: blur(60px) saturate(1.3);
+  opacity: 0.5;
+  z-index: 0;
+  pointer-events: none;
 }
 .art-cover {
+  position: relative;
+  z-index: 1;
   width: 100%;
   max-width: 1200px;
   margin: 0 auto;
   aspect-ratio: 21/9;
   background: var(--blue);
-  position: relative;
   overflow: hidden;
 }
 .art-cover.has-cover {
