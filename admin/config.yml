@@ -7,9 +7,7 @@ backend:
   name: github
   repo: diamantifugazi/CoolDown.f1
   branch: main
-  base_url: https://cooldown-f1-oauth.YOUR-SUBDOMAIN.workers.dev
-  # ⬆️ DA SOSTITUIRE col tuo Worker URL dopo averlo creato.
-  # Esempio finale: https://cooldown-f1-oauth.davidebianchi.workers.dev
+base_url: https://cooldown-f1-oauth.fugazzottodavide.workers.dev  
   auth_endpoint: auth
   commit_messages:
     create: 'Articolo: nuovo "{{slug}}"'
