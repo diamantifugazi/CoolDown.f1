@@ -2627,8 +2627,17 @@ Newey oggi è in Aston Martin. La AMR26 ha la sua firma — pance estreme, sospe
    prova a sostituire con il CMS se ha articoli reali.
    ============================================================ */
 function slugFromFilename(name) {
-  return String(name).replace(/\.md$/, '').replace(/^\d{4}-\d{2}-\d{2}-/, '');
-}
+     return String(name)
+       .replace(/\.md$/, '')
+       .replace(/^\d{4}-\d{2}-\d{2}-/, '')
+       .toLowerCase()
+       .replace(/[àáâãä]/g, 'a').replace(/[èéêë]/g, 'e')
+       .replace(/[ìíîï]/g, 'i').replace(/[òóôõö]/g, 'o')
+       .replace(/[ùúûü]/g, 'u').replace(/[ç]/g, 'c').replace(/[ñ]/g, 'n')
+       .replace(/[^a-z0-9-]+/g, '-')
+       .replace(/^-+|-+$/g, '')
+       .slice(0, 80);
+   }
 
 function renderArticlesList(articles, total, isFallback) {
   const grid = document.getElementById('articlesGrid');
