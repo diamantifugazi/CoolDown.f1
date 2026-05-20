@@ -1,13 +1,8 @@
-# ============================================================
-# CoolDown F1 — Decap CMS Configuration (Cloudflare Pages + GitHub OAuth)
-# ============================================================
-# Documentazione: https://decapcms.org/docs/
-
 backend:
   name: github
   repo: diamantifugazi/CoolDown.f1
   branch: main
-base_url: https://cooldown-f1-oauth.fugazzottodavide.workers.dev  
+  base_url: https://cooldown-f1-oauth.fugazzottodavide.workers.dev
   auth_endpoint: auth
   commit_messages:
     create: 'Articolo: nuovo "{{slug}}"'
@@ -16,27 +11,18 @@ base_url: https://cooldown-f1-oauth.fugazzottodavide.workers.dev
     uploadMedia: 'Media: upload "{{path}}"'
     deleteMedia: 'Media: eliminato "{{path}}"'
 
-# Workflow editoriale: ogni modifica passa per uno stato di revisione
-# prima di essere pubblicata. Dashboard → "Workflow" per vederli.
 publish_mode: editorial_workflow
 
-# Dove vanno salvate le immagini caricate dal CMS
 media_folder: "images/uploads"
 public_folder: "/images/uploads"
 
-# Lingua dell'interfaccia
 locale: 'it'
 
-# Visualizzazione del sito dal CMS (link "View Live")
 site_url: https://cooldown-f1.pages.dev
 display_url: https://cooldown-f1.pages.dev
 logo_url: ""
 
-# ============================================================
-# COLLEZIONI
-# ============================================================
 collections:
-
   - name: "articles"
     label: "Articoli"
     label_singular: "Articolo"
@@ -50,37 +36,29 @@ collections:
     sortable_fields: ['date', 'title', 'tag']
 
     view_filters:
-      - label: "📰 Analisi"
+      - label: "Analisi"
         field: tag
         pattern: "Analisi"
-      - label: "⚙️ Tech"
+      - label: "Tech"
         field: tag
         pattern: "Tech"
-      - label: "📖 Storia"
+      - label: "Storia"
         field: tag
         pattern: "Storia"
-      - label: "🎬 Cultura"
+      - label: "Cultura"
         field: tag
         pattern: "Cultura"
-      - label: "💬 Opinione"
+      - label: "Opinione"
         field: tag
         pattern: "Opinione"
-      - label: "📊 Data"
+      - label: "Data"
         field: tag
         pattern: "Data"
-      - label: "📚 Long-form"
+      - label: "Long-form"
         field: tag
         pattern: "Long-form"
 
-    view_groups:
-      - label: "Per categoria"
-        field: tag
-      - label: "Per anno"
-        field: date
-        pattern: \d{4}
-
     fields:
-
       - label: "Titolo"
         name: "title"
         widget: "string"
@@ -130,10 +108,7 @@ collections:
         name: "cover"
         widget: "image"
         required: false
-        media_library:
-          config:
-            multiple: false
-        hint: "Immagine di copertina dell'articolo. Consigliato: orizzontale (16:9 o 16:10), almeno 1200px di larghezza, max 400 KB. Se vuoto, viene usato uno stile grafico astratto (vedi sotto)."
+        hint: "Immagine di copertina. Consigliato 1200px+ larghezza, max 400KB. Se vuoto, viene usato uno stile grafico astratto."
 
       - label: "Stile grafico di fallback"
         name: "variant"
@@ -141,17 +116,16 @@ collections:
         required: false
         default: "ac-v0"
         options:
-          - { label: "Halftone diagonale (blu)", value: "ac-v0" }
-          - { label: "Halftone centrato (nero)", value: "ac-v1" }
-          - { label: "Halftone verticale (rosso)", value: "ac-v2" }
-        hint: "Usato SOLO se non hai caricato una cover image. Tre stili grafici brand-coerenti."
+          - label: "Halftone diagonale (blu)"
+            value: "ac-v0"
+          - label: "Halftone centrato (nero)"
+            value: "ac-v1"
+          - label: "Halftone verticale (rosso)"
+            value: "ac-v2"
+        hint: "Usato SOLO se non hai caricato una cover image."
 
       - label: "Corpo dell'articolo"
         name: "body"
         widget: "markdown"
         required: true
-        minimal: false
-        modes: ['rich_text', 'raw']
-        buttons: ['bold', 'italic', 'link', 'heading-two', 'heading-three', 'quote', 'bulleted-list', 'numbered-list']
-        editor_components: ['image']
-        hint: "Scrivi qui il testo. Usa H2 (##) per i titoli di sezione, H3 (###) per i sottotitoli, **grassetto** per evidenziare."
+        hint: "Scrivi qui il testo. Usa ## per i titoli, **grassetto** per evidenziare."
