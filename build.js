@@ -297,6 +297,7 @@ nav { position:fixed; top:0; left:0; right:0; z-index:500; height:60px; backgrou
 /* ===== ARTICLE BODY ===== */
 .art-body-wrap { padding: 3rem var(--pad-x); padding-left:max(var(--pad-x), env(safe-area-inset-left)); padding-right:max(var(--pad-x), env(safe-area-inset-right)); }
 .art-body { max-width: 720px; margin: 0 auto; }
+@media (min-width: 1024px) { .art-body { max-width: 920px; } }
 .art-excerpt {
   font-family:'IBM Plex Serif',serif;
   font-style:italic;
@@ -325,6 +326,8 @@ nav { position:fixed; top:0; left:0; right:0; z-index:500; height:60px; backgrou
   border-bottom: 1px solid rgba(0,0,0,.15);
   display:flex; align-items:center; flex-wrap:wrap; gap:1rem;
 }
+@media (min-width: 1024px) { .art-share { max-width: 920px; } }
+
 .art-share-lbl { font-size:var(--fs-micro); letter-spacing:.3em; text-transform:uppercase; color:var(--mid); }
 .art-share-btns { display:flex; gap:.5rem; flex-wrap:wrap; }
 .share-btn {
@@ -437,9 +440,9 @@ footer { background:var(--ink); color:var(--paper); border-top:1px solid rgba(24
   </div>
 </section>
 
-<div class="art-cover-wrap">
-  <div class="art-cover ${hasCover ? 'has-cover' : variant}"${hasCover ? ` style="background-image:url('${escapeAttr(a.cover)}')"` : ''}></div>
-</div>
+<div class="art-cover-wrap"${hasCover ? ` style="--cover-img:url('${escapeAttr(a.cover)}')"` : ''}>
+     <div class="art-cover ${hasCover ? 'has-cover' : variant}"${hasCover ? ` style="background-image:url('${escapeAttr(a.cover)}')"` : ''}></div>
+   </div>
 
 <section class="art-body-wrap">
   <div class="art-body">
