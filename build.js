@@ -254,31 +254,21 @@ nav { position:fixed; top:0; left:0; right:0; z-index:500; height:60px; backgrou
 /* ===== COVER ===== */
 .art-cover-wrap {
   background: var(--paper);
-  padding: 1.5rem 0;
-  position: relative;
+  padding: 0;
   overflow: hidden;
-}
-.art-cover-wrap::before {
-  content: '';
-  position: absolute;
-  inset: -80px;
-  background-image: var(--cover-img, none);
-  background-size: cover;
-  background-position: center;
-  filter: blur(60px) saturate(1.3);
-  opacity: 0.5;
-  z-index: 0;
-  pointer-events: none;
 }
 .art-cover {
-  position: relative;
-  z-index: 1;
   width: 100%;
-  max-width: 1200px;
-  margin: 0 auto;
-  aspect-ratio: 21/9;
+  aspect-ratio: 16/9;
   background: var(--blue);
+  position: relative;
   overflow: hidden;
+}
+@media (min-width: 1024px) {
+  .art-cover {
+    aspect-ratio: 21/9;
+    max-height: 620px;
+  }
 }
 .art-cover.has-cover {
   background-color: var(--mid-soft);
@@ -297,7 +287,8 @@ nav { position:fixed; top:0; left:0; right:0; z-index:500; height:60px; backgrou
 /* ===== ARTICLE BODY ===== */
 .art-body-wrap { padding: 3rem var(--pad-x); padding-left:max(var(--pad-x), env(safe-area-inset-left)); padding-right:max(var(--pad-x), env(safe-area-inset-right)); }
 .art-body { max-width: 720px; margin: 0 auto; }
-@media (min-width: 1024px) { .art-body { max-width: 920px; } }
+@media (min-width: 1024px) { .art-body { max-width: 820px; } }
+@media (min-width: 1440px) { .art-body { max-width: 880px; } }
 .art-excerpt {
   font-family:'IBM Plex Serif',serif;
   font-style:italic;
@@ -326,7 +317,8 @@ nav { position:fixed; top:0; left:0; right:0; z-index:500; height:60px; backgrou
   border-bottom: 1px solid rgba(0,0,0,.15);
   display:flex; align-items:center; flex-wrap:wrap; gap:1rem;
 }
-@media (min-width: 1024px) { .art-share { max-width: 920px; } }
+@media (min-width: 1024px) { .art-share { max-width: 820px; } }
+@media (min-width: 1440px) { .art-share { max-width: 880px; } }
 
 .art-share-lbl { font-size:var(--fs-micro); letter-spacing:.3em; text-transform:uppercase; color:var(--mid); }
 .art-share-btns { display:flex; gap:.5rem; flex-wrap:wrap; }
@@ -440,9 +432,9 @@ footer { background:var(--ink); color:var(--paper); border-top:1px solid rgba(24
   </div>
 </section>
 
-<div class="art-cover-wrap"${hasCover ? ` style="--cover-img:url('${escapeAttr(a.cover)}')"` : ''}>
-     <div class="art-cover ${hasCover ? 'has-cover' : variant}"${hasCover ? ` style="background-image:url('${escapeAttr(a.cover)}')"` : ''}></div>
-   </div>
+<div class="art-cover-wrap">
+  <div class="art-cover ${hasCover ? 'has-cover' : variant}"${hasCover ? ` style="background-image:url('${escapeAttr(a.cover)}')"` : ''}></div>
+</div>
 
 <section class="art-body-wrap">
   <div class="art-body">
