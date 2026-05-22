@@ -52,7 +52,15 @@ function slugify(s) {
 // Minimal markdown to HTML (matches what's used in the modal of the original site)
 function markdownToHTML(md) {
   let html = String(md || '')
-    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+  // Immagini ![alt](url "didascalia opzionale") — su una riga propria diventano figure block
+  html = html.replace(/^!\[([^\]]*)\]\(([^\s)]+)(?:\s+"([^"]+)")?\)\s*$/gm, (_, alt, src, caption) => {
+    const cap = caption || alt;
+    return `<figure class="art-figure"><img src="${src}" alt="${alt}" loading="lazy">${cap ? `<figcaption>${cap}</figcaption>` : ''}</figure>`;
+  });
+
+  html = html
     .replace(/^### (.+)$/gm, '<h3>$1</h3>')
     .replace(/^## (.+)$/gm, '<h2>$1</h2>')
     .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
@@ -60,10 +68,11 @@ function markdownToHTML(md) {
     .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>')
     .replace(/^[-*] (.+)$/gm, '<li>$1</li>')
     .replace(/(<li>.*<\/li>\n?)+/g, s => `<ul>${s}</ul>`);
+
   html = html.split(/\n{2,}/).map(block => {
     block = block.trim();
     if (!block) return '';
-    if (/^<(h[23]|ul|li|p)/.test(block)) return block;
+    if (/^<(h[23]|ul|li|p|figure)/.test(block)) return block;
     return `<p>${block.replace(/\n/g, ' ')}</p>`;
   }).join('\n');
   return html;
@@ -207,8 +216,8 @@ body { font-family:'IBM Plex Mono','Courier New',Courier,monospace; font-size:va
 
 /* ===== NAV ===== */
 nav { position:fixed; top:0; left:0; right:0; z-index:500; height:60px; background:rgba(10,10,10,0.96); backdrop-filter:blur(8px); display:flex; align-items:center; justify-content:space-between; padding:0 var(--pad-x); padding-left:max(var(--pad-x), env(safe-area-inset-left)); padding-right:max(var(--pad-x), env(safe-area-inset-right)); border-bottom:1px solid var(--blue); }
-.nav-logo { font-family:'IBM Plex Sans Condensed',sans-serif; font-size:1.2rem; font-weight:700; letter-spacing:-.5px; color:var(--paper); text-transform:uppercase; display:flex; align-items:center; gap:9px; text-decoration:none; }
-.nav-logo::before { content:''; display:block; width:9px; height:9px; background:var(--blue); animation:blink 1.4s steps(2) infinite; }
+.nav-logo { font-family:'IBM Plex Sans Condensed',sans-serif; font-size:1.2rem; font-weight:700; letter-spacing:-.5px; color:var(--paper); text-transform:uppercase; position:relative; padding-left:20px; text-decoration:none; }
+.nav-logo::before { content:''; position:absolute; left:0; top:50%; transform:translateY(-50%); width:9px; height:9px; background:var(--blue); animation:blink 1.4s steps(2) infinite; }
 @keyframes blink { 50% { opacity:.2; } }
 .nav-logo span { color:var(--blue); }
 .nav-links { display:none; gap:2rem; list-style:none; }
@@ -309,6 +318,31 @@ nav { position:fixed; top:0; left:0; right:0; z-index:500; height:60px; backgrou
 .art-body article ul, .art-body article ol { padding-left:1.5rem; margin-bottom:1.4rem; }
 .art-body article li { margin-bottom:.5rem; }
 
+/* ===== INLINE FIGURES (body images) ===== */
+.art-figure {
+  margin: 2.5rem 0;
+  text-align: center;
+}
+.art-figure img {
+  display: block;
+  width: 100%;
+  height: auto;
+  margin: 0 auto;
+  background: var(--paper-warm);
+}
+.art-figure figcaption {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.75rem;
+  color: var(--mid);
+  letter-spacing: 1px;
+  margin-top: 0.8rem;
+  font-style: normal;
+  text-transform: none;
+  text-align: center;
+  line-height: 1.5;
+  padding: 0 0.5rem;
+}
+
 /* ===== SHARE ===== */
 .art-share {
   max-width:720px; margin: 3rem auto 0;
@@ -319,7 +353,6 @@ nav { position:fixed; top:0; left:0; right:0; z-index:500; height:60px; backgrou
 }
 @media (min-width: 1024px) { .art-share { max-width: 820px; } }
 @media (min-width: 1440px) { .art-share { max-width: 880px; } }
-
 .art-share-lbl { font-size:var(--fs-micro); letter-spacing:.3em; text-transform:uppercase; color:var(--mid); }
 .art-share-btns { display:flex; gap:.5rem; flex-wrap:wrap; }
 .share-btn {
@@ -393,13 +426,14 @@ footer { background:var(--ink); color:var(--paper); border-top:1px solid rgba(24
 <body>
 
 <nav>
-  <a href="/" class="nav-logo">CoolDown<span>·</span>F1</a>
+  <a href="/" class="nav-logo">Cool<span>Down</span></a>
   <ul class="nav-links">
     <li><a href="/">Hero</a></li>
     <li><a href="/articoli.html" class="is-current">Articoli</a></li>
-    <li><a href="/#ig">Feed</a></li>
+    <li><a href="/feed.html">Feed</a></li>
     <li><a href="/calendario.html">Calendario</a></li>
     <li><a href="/classifica.html">Classifica</a></li>
+    <li><a href="/statistiche.html">Stats</a></li>
     <li><a href="/#newsletter">Newsletter</a></li>
   </ul>
   <button class="nav-toggle" id="navToggle" aria-label="Menu"><span></span><span></span><span></span></button>
@@ -407,9 +441,10 @@ footer { background:var(--ink); color:var(--paper); border-top:1px solid rgba(24
 <div class="nav-drawer" id="navDrawer">
   <a href="/">Hero</a>
   <a href="/articoli.html">Articoli</a>
-  <a href="/#ig">Feed</a>
+  <a href="/feed.html">Feed</a>
   <a href="/calendario.html">Calendario</a>
   <a href="/classifica.html">Classifica</a>
+  <a href="/statistiche.html">Stats</a>
   <a href="/#newsletter">Newsletter</a>
 </div>
 
@@ -493,7 +528,8 @@ ${related.length ? `
         <li><a href="/articoli.html">Articoli</a></li>
         <li><a href="/calendario.html">Calendario</a></li>
         <li><a href="/classifica.html">Classifica</a></li>
-        <li><a href="/#ig">Feed</a></li>
+    <li><a href="/statistiche.html">Stats</a></li>
+        <li><a href="/feed.html">Feed</a></li>
       </ul>
     </div>
     <div class="foot-col">
