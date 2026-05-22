@@ -54,7 +54,7 @@ html {
 
   /* Spacing */
   --pad-x: 1.25rem;
-  --pad-y: 4rem;
+  --pad-y: 2.5rem;
   --gutter: 1rem;
 
   /* Halftone */
@@ -63,10 +63,10 @@ html {
 }
 
 @media (min-width: 768px) {
-  :root { --pad-x: 2.5rem; --pad-y: 6rem; --gutter: 1.5rem; --grid: 18px; }
+  :root { --pad-x: 2.5rem; --pad-y: 3.5rem; --gutter: 1.5rem; --grid: 18px; }
 }
 @media (min-width: 1200px) {
-  :root { --pad-x: 4rem; --pad-y: 8rem; }
+  :root { --pad-x: 4rem; --pad-y: 4.5rem; }
 }
 
 body {
@@ -177,14 +177,16 @@ nav {
   letter-spacing: -0.5px;
   color: var(--paper);
   text-transform: uppercase;
-  display: flex;
-  align-items: center;
-  gap: 9px;
+  position: relative;
+  padding-left: 20px;
   text-decoration: none;
 }
 .nav-logo::before {
   content: '';
-  display: block;
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
   width: 9px; height: 9px;
   background: var(--blue);
   animation: blink 1.4s steps(2) infinite;
@@ -221,18 +223,6 @@ nav {
 .nav-links a:hover::after { width: 100%; }
 .nav-links a.is-current { color: var(--paper); }
 .nav-links a.is-current::after { width: 100%; }
-
-.nav-meta {
-  font-size: 0.6rem;
-  letter-spacing: 3px;
-  color: rgba(242,241,237,0.5);
-  display: none; /* nascosto su mobile: logo + toggle bastano */
-  align-items: center;
-  gap: 10px;
-}
-@media (min-width: 600px) { .nav-meta { display: flex; } }
-.nav-meta-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--green); }
-.nav-meta-dot.idle { background: var(--mid-soft); }
 
 .nav-toggle {
   display: flex;
@@ -366,27 +356,12 @@ section {
   padding-left: max(var(--pad-x), env(safe-area-inset-left));
   padding-right: max(var(--pad-x), env(safe-area-inset-right));
 }
-.hero-tag {
-  display: inline-block;
-  font-size: var(--fs-micro);
-  font-weight: 500;
-  letter-spacing: 0.25em;
-  color: rgba(242,241,237,0.7);
-  text-transform: uppercase;
-  border: 1px solid rgba(242,241,237,0.35);
-  padding: 5px 12px;
-  margin-bottom: 1.5rem;
-  max-width: 100%;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
 .hero-title {
   font-family: 'IBM Plex Sans Condensed', sans-serif;
   font-size: var(--fs-mega);
   font-weight: 700;
   line-height: 0.85;
-  letter-spacing: -1px; /* valore fisso sicuro: clamp con negativi era CSS invalido su WebKit */
+  letter-spacing: -1px;
   color: var(--paper);
   text-transform: uppercase;
 }
@@ -424,12 +399,21 @@ section {
   align-items: center;
   gap: 8px;
 }
-.hero-card-eyebrow .live {
+/* Session badge dot — 3 states */
+.session-dot {
   display: inline-block;
-  width: 6px; height: 6px;
-  background: var(--paper);
+  width: 8px; height: 8px;
   border-radius: 50%;
-  animation: pulse 1.4s ease-in-out infinite;
+  flex-shrink: 0;
+  animation: sessionPulse 1.6s ease-in-out infinite;
+}
+.session-dot.idle { background: #999; box-shadow: 0 0 8px rgba(150,150,150,.7); }
+.session-dot.soon { background: #FFD400; box-shadow: 0 0 10px rgba(255,212,0,.9); animation-duration: 1.2s; }
+.session-dot.live { background: #FF2200; box-shadow: 0 0 12px rgba(255,34,0,1); animation-duration: .8s; }
+.session-badge[data-state="live"] { color: var(--paper); font-weight: 600; }
+@keyframes sessionPulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.45; transform: scale(0.75); }
 }
 @keyframes pulse {
   0%, 100% { opacity: 1; transform: scale(1); }
@@ -882,6 +866,58 @@ section {
   transition: transform .3s cubic-bezier(.2,.7,.3,1);
 }
 
+/* Stats home section */
+.stats-home { background: var(--paper); }
+
+/* ============================================================
+   MINI STATS (sotto Mondiale 2026)
+   ============================================================ */
+.mini-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1px;
+  background: rgba(10,10,10,.18);
+  margin-top: 2rem;
+  border: 1px solid rgba(10,10,10,.18);
+}
+@media (min-width: 768px) {
+  .mini-stats { grid-template-columns: repeat(4, 1fr); }
+}
+.mini-stat {
+  background: var(--paper);
+  padding: 1.25rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: .4rem;
+  min-height: 110px;
+  position: relative;
+}
+.mini-stat-lbl {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: var(--fs-micro);
+  letter-spacing: .22em;
+  color: var(--blue);
+  text-transform: uppercase;
+  font-weight: 600;
+}
+.mini-stat-v {
+  font-family: 'IBM Plex Sans Condensed', sans-serif;
+  font-size: clamp(1.3rem, 3vw, 1.8rem);
+  font-weight: 700;
+  line-height: 1.05;
+  color: var(--ink);
+  text-transform: uppercase;
+  letter-spacing: -.5px;
+  margin-top: auto;
+}
+.mini-stat-sub {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: var(--fs-tiny);
+  letter-spacing: .15em;
+  color: var(--mid);
+  text-transform: uppercase;
+}
+
 /* ============================================================
    CALENDARIO
    ============================================================ */
@@ -1079,7 +1115,7 @@ section {
   gap: var(--gutter);
 }
 @media (min-width: 600px) { .ig-grid { grid-template-columns: repeat(3, 1fr); } }
-@media (min-width: 1000px) { .ig-grid { grid-template-columns: repeat(4, 1fr); } }
+@media (min-width: 1000px) { .ig-grid { grid-template-columns: repeat(3, 1fr); } }
 
 .ig-post {
   aspect-ratio: 1/1;
@@ -1340,14 +1376,14 @@ footer {
 .ig-post::before {
   content: ''; position: absolute; inset: 0; pointer-events: none;
 }
-.ig-v0::before { background: radial-gradient(circle,rgba(242,241,237,.22) 1.5px,transparent 2px) 0 0/14px 14px; }
-.ig-v1::before { background: radial-gradient(circle,rgba(242,241,237,.18) 2px,transparent 2.5px) 4px 4px/18px 18px; }
-.ig-v2::before { background: radial-gradient(circle,rgba(242,241,237,.28) 1px,transparent 1.5px) 0 0/8px 8px; }
-.ig-v3::before { background: radial-gradient(circle,rgba(242,241,237,.15) 2.5px,transparent 3px) 2px 2px/20px 20px; }
-.ig-v4::before { background: radial-gradient(circle,rgba(242,241,237,.25) 1.2px,transparent 1.8px) 0 0/10px 10px; }
+.ig-v0::before { background: radial-gradient(circle,rgba(242,241,237,.24) .12em,transparent .16em) 0 0/1em 1em; }
+.ig-v1::before { background: radial-gradient(circle,rgba(242,241,237,.2) .15em,transparent .2em) .3em .3em/1.3em 1.3em; }
+.ig-v2::before { background: radial-gradient(circle,rgba(242,241,237,.3) .08em,transparent .12em) 0 0/.6em .6em; }
+.ig-v3::before { background: radial-gradient(circle,rgba(242,241,237,.18) .18em,transparent .22em) .15em .15em/1.4em 1.4em; }
+.ig-v4::before { background: radial-gradient(circle,rgba(242,241,237,.26) .1em,transparent .14em) 0 0/.75em .75em; }
 
 /* ============================================================
-   LOADER
+   LOADER — Locomotive-style glitch reveal
    ============================================================ */
 .loader {
   position: fixed;
@@ -1357,56 +1393,76 @@ footer {
   display: flex;
   align-items: center;
   justify-content: center;
-  flex-direction: column;
-  gap: 1.5rem;
-  transition: opacity .5s, visibility .5s;
-  /* Fallback CSS puro: anche se JS crasha, il loader sparisce */
-  animation: loaderAutohide 3s forwards;
+  transition: opacity .6s cubic-bezier(.6,0,.2,1), visibility .6s;
+  /* Fallback CSS puro: anche se JS crasha, il loader sparisce dopo 3s */
+  animation: loaderAutohide 3.5s forwards;
 }
-/* la classe .gone (aggiunta via JS) fa sparire subito */
+/* dot pattern (halftone) sopra al loader, sottile */
+.loader::before {
+  content: '';
+  position: absolute; inset: 0;
+  background-image: radial-gradient(circle, rgba(242,241,237,.12) 1.5px, transparent 1.8px);
+  background-size: 18px 18px;
+  pointer-events: none;
+}
 .loader.gone {
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
   animation: none;
 }
-/* fallback: dissolvenza progressiva a partire da 2.2s, completata a 3s */
 @keyframes loaderAutohide {
   0%   { opacity: 1; visibility: visible; }
-  73%  { opacity: 1; visibility: visible; }  /* 2.2s / 3s */
+  85%  { opacity: 1; visibility: visible; }
   100% { opacity: 0; visibility: hidden; pointer-events: none; }
 }
+.loader-inner {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 0 var(--pad-x);
+  width: 100%;
+  max-width: 100%;
+}
+.loader-meta-top, .loader-meta-bottom {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: var(--fs-micro);
+  letter-spacing: .3em;
+  color: rgba(242,241,237,.7);
+  text-transform: uppercase;
+  opacity: 0;
+  animation: loaderMetaFade .6s ease forwards;
+  animation-delay: .25s;
+}
+.loader-meta-bottom { animation-delay: 1.2s; }
+@keyframes loaderMetaFade { to { opacity: 1; } }
+
 .loader-logo {
   font-family: 'IBM Plex Sans Condensed', sans-serif;
-  font-size: 3rem;
+  font-size: clamp(2.8rem, 12vw, 8rem);
   font-weight: 700;
-  letter-spacing: -1px;
+  letter-spacing: -.04em;
   color: var(--paper);
   text-transform: uppercase;
+  line-height: .9;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  text-align: center;
 }
-.loader-bar {
-  width: 200px;
-  height: 4px;
-  background: rgba(242,241,237,0.2);
-  position: relative;
-  overflow: hidden;
+.loader-word {
+  display: inline-block;
+  font-variant-numeric: tabular-nums;
 }
-.loader-bar::after {
-  content: '';
-  position: absolute; left: 0; top: 0;
-  width: 30%; height: 100%;
-  background: var(--paper);
-  animation: load 1.2s ease-in-out infinite;
+.loader-word-blue {
+  color: rgba(242,241,237,.55); /* sarà animato a paper più tardi */
 }
-@keyframes load {
-  0% { left: -30%; }
-  100% { left: 100%; }
-}
-.loader-meta {
-  font-size: 0.6rem;
-  letter-spacing: 4px;
-  color: rgba(242,241,237,0.65);
-  text-transform: uppercase;
+@media (prefers-reduced-motion: reduce) {
+  .loader { animation-duration: 1s; }
+  .loader-meta-top, .loader-meta-bottom { opacity: 1; animation: none; }
 }
 </style>
 </head>
@@ -1415,10 +1471,17 @@ footer {
 <!-- ============================================================
      LOADER
      ============================================================ -->
-<div class="loader" id="loader">
-  <div class="loader-logo">CoolDown</div>
-  <div class="loader-bar"></div>
-  <div class="loader-meta">Loading // F1 System 2026</div>
+<!-- ============================================================
+     LOADER — Locomotive-style char glitch reveal
+     ============================================================ -->
+<div class="loader" id="loader" aria-hidden="false">
+  <div class="loader-inner">
+    <div class="loader-meta-top" id="loaderMetaTop">// CoolDown · Sistema Halftone</div>
+    <div class="loader-logo">
+      <span class="loader-word" id="loaderWord1">XXXX</span><span class="loader-word loader-word-blue" id="loaderWord2">XXXX</span>
+    </div>
+    <div class="loader-meta-bottom" id="loaderMetaBottom">[ loading // 2026 ]</div>
+  </div>
 </div>
 
 <!-- ============================================================
@@ -1431,19 +1494,16 @@ footer {
      NAV
      ============================================================ -->
 <nav>
-  <a href="#top" class="nav-logo">CoolDown<span>·</span>F1</a>
+  <a href="#top" class="nav-logo">Cool<span>Down</span></a>
   <ul class="nav-links">
     <li><a href="#hero">Hero</a></li>
     <li><a href="articoli.html">Articoli</a></li>
-    <li><a href="#ig">Feed</a></li>
+    <li><a href="feed.html">Feed</a></li>
     <li><a href="calendario.html">Calendario</a></li>
     <li><a href="classifica.html">Classifica</a></li>
+    <li><a href="statistiche.html">Stats</a></li>
     <li><a href="#newsletter">Newsletter</a></li>
   </ul>
-  <div class="nav-meta">
-    <span class="nav-meta-dot idle" id="liveDot"></span>
-    <span id="liveLabel">Idle</span>
-  </div>
   <button class="nav-toggle" id="navToggle" aria-label="Menu">
     <span></span><span></span><span></span>
   </button>
@@ -1451,9 +1511,10 @@ footer {
 <div class="nav-drawer" id="navDrawer">
   <a href="#hero">Hero</a>
   <a href="articoli.html">Articoli</a>
-  <a href="#ig">Feed</a>
+  <a href="feed.html">Feed</a>
   <a href="calendario.html">Calendario</a>
   <a href="classifica.html">Classifica</a>
+  <a href="statistiche.html">Stats</a>
   <a href="#newsletter">Newsletter</a>
 </div>
 
@@ -1467,16 +1528,15 @@ footer {
   </div>
 
   <div class="hero-brand">
-         <span class="hero-tag">Formula 1 · Magazine · Dati · Precisione</span>
     <h1 class="hero-title">CoolDown</h1>
   </div>
 
   <div class="hero-data">
     <!-- COUNTDOWN -->
     <div class="hero-card">
-      <div class="hero-card-eyebrow">
-        <span class="live"></span>
-        <span>// Prossima sessione</span>
+      <div class="hero-card-eyebrow session-badge" id="sessionBadge" data-state="idle">
+        <span class="session-dot idle" id="sessionDot"></span>
+        <span id="sessionLbl">Prossima sessione</span>
       </div>
       <div class="cd-session" id="cdSession">Caricamento…</div>
       <div class="cd-timer">
@@ -1567,7 +1627,7 @@ footer {
 
   <a class="see-all" href="articoli.html" aria-label="Vedi tutti gli articoli">
     <span class="see-all-lbl">See all</span>
-    <span class="see-all-sub">// Articoli completi</span>
+    <span class="see-all-sub">// Articoli per categoria</span>
     <span class="see-all-arrow" aria-hidden="true">→</span>
   </a>
 </section>
@@ -1587,10 +1647,12 @@ footer {
     <div class="ig-post ig-v4"><div class="ig-post-overlay"><div class="ig-post-meta">Top 5 sorpassi del 2026 (finora)<br/>02 mag</div></div></div>
     <div class="ig-post ig-v1"><div class="ig-post-overlay"><div class="ig-post-meta">Il box Ferrari in 47 secondi<br/>29 apr</div></div></div>
     <div class="ig-post ig-v2"><div class="ig-post-overlay"><div class="ig-post-meta">Mercato piloti 2027 — rumors<br/>26 apr</div></div></div>
-    <div class="ig-post ig-v0"><div class="ig-post-overlay"><div class="ig-post-meta">Senna · 32 anni dopo<br/>01 mag</div></div></div>
-    <div class="ig-post ig-v3"><div class="ig-post-overlay"><div class="ig-post-meta">Setup Monaco: cosa cambia<br/>21 mag</div></div></div>
   </div>
-  <a class="ig-cta" href="https://instagram.com" target="_blank" rel="noopener">Segui @cooldown.f1</a>
+  <a class="see-all" href="feed.html" aria-label="Vedi tutti i post del feed">
+    <span class="see-all-lbl">See all</span>
+    <span class="see-all-sub">// Tutti i post Instagram + TikTok</span>
+    <span class="see-all-arrow" aria-hidden="true">→</span>
+  </a>
 </section>
 
 <!-- ============================================================
@@ -1630,9 +1692,48 @@ footer {
     <div class="loading-placeholder">Dati non disponibili offline.<br/>Apri il file da un server o attiva la connessione.</div>
   </div>
 
-  <a class="see-all" href="classifica.html" aria-label="Vedi classifica completa e statistiche">
+  <a class="see-all" href="classifica.html" aria-label="Vedi classifica completa">
     <span class="see-all-lbl">See all</span>
-    <span class="see-all-sub">// Classifica e stats </span>
+    <span class="see-all-sub">// Classifica completa</span>
+    <span class="see-all-arrow" aria-hidden="true">→</span>
+  </a>
+</section>
+
+<!-- ============================================================
+     STATS — sezione dedicata in home con 4 mini box
+     ============================================================ -->
+<section class="stats-home" id="stats-home">
+  <div class="reveal">
+    <div class="eyebrow">// Numbers</div>
+    <h2 class="section-title">Stats <em>2026</em></h2>
+  </div>
+
+  <div class="mini-stats reveal">
+    <div class="mini-stat">
+      <div class="mini-stat-lbl">// Pitstop più veloce</div>
+      <div class="mini-stat-v" id="msPitstop">—</div>
+      <div class="mini-stat-sub" id="msPitstopSub">Team · GP</div>
+    </div>
+    <div class="mini-stat">
+      <div class="mini-stat-lbl">// Vittorie leader</div>
+      <div class="mini-stat-v" id="msWins">—</div>
+      <div class="mini-stat-sub" id="msWinsSub">Pilota</div>
+    </div>
+    <div class="mini-stat">
+      <div class="mini-stat-lbl">// Distacco P1—P2</div>
+      <div class="mini-stat-v" id="msGap">—</div>
+      <div class="mini-stat-sub" id="msGapSub">Punti</div>
+    </div>
+    <div class="mini-stat">
+      <div class="mini-stat-lbl">// In testa costruttori</div>
+      <div class="mini-stat-v" id="msTeam">—</div>
+      <div class="mini-stat-sub" id="msTeamSub">Punti totali</div>
+    </div>
+  </div>
+
+  <a class="see-all" href="statistiche.html" aria-label="Vedi tutte le statistiche">
+    <span class="see-all-lbl">See all</span>
+    <span class="see-all-sub">// Tutte le statistiche della stagione</span>
     <span class="see-all-arrow" aria-hidden="true">→</span>
   </a>
 </section>
@@ -1674,7 +1775,8 @@ footer {
         <li><a href="articoli.html">Articoli</a></li>
         <li><a href="calendario.html">Calendario</a></li>
         <li><a href="classifica.html">Classifica</a></li>
-        <li><a href="#ig">Feed</a></li>
+        <li><a href="statistiche.html">Stats</a></li>
+        <li><a href="feed.html">Feed</a></li>
       </ul>
     </div>
     <div class="foot-col">
@@ -1707,34 +1809,72 @@ footer {
      ============================================================ -->
 <script>
 /* ============================================================
-   LOADER — registrato PRIMA di qualsiasi altro codice
-   Così anche se il resto dello script crasha (es. fetch bloccato
-   da file:// su iOS Safari) il loader sparisce comunque.
+   LOADER — Locomotive-style char glitch reveal
+   Registrato PRIMA di qualsiasi altro codice così è robusto.
    ============================================================ */
-function hideLoader() {
-  const l = document.getElementById('loader');
-  if (!l) return;
-  l.classList.add('gone');
-  // Fallback hard: dopo la transizione CSS rimuove completamente
-  // l'elemento dal paint tree (sicuro su tutti i browser mobili)
-  setTimeout(() => { l.style.display = 'none'; }, 600);
-}
+(() => {
+  const loader = document.getElementById('loader');
+  const w1 = document.getElementById('loaderWord1');
+  const w2 = document.getElementById('loaderWord2');
+  if (!loader || !w1 || !w2) return;
 
-// Trigger 1: DOMContentLoaded — si attiva appena il DOM è parsato,
-// prima che font/fetch/immagini esterne terminino
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', () => setTimeout(hideLoader, 400));
-} else {
-  // Il parser è già arrivato alla fine del body
-  setTimeout(hideLoader, 200);
-}
+  // Se l'utente ha già visto il loader in questa sessione, skip
+  let alreadyShown = false;
+  try { alreadyShown = sessionStorage.getItem('cd-loader-v1') === '1'; } catch {}
 
-// Trigger 2: window.load — per sicurezza
-window.addEventListener('load', () => setTimeout(hideLoader, 100));
+  const FINAL_1 = 'COOL';
+  const FINAL_2 = 'DOWN';
+  const CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789#@*/·';
 
-// Trigger 3: timeout breve — nasconde comunque dopo 1.2s
-// (era 2500ms: troppo lungo su connessioni lente o file://)
-setTimeout(hideLoader, 1200);
+  function hideLoader() {
+    loader.classList.add('gone');
+    setTimeout(() => { loader.style.display = 'none'; }, 700);
+    try { sessionStorage.setItem('cd-loader-v1', '1'); } catch {}
+  }
+
+  // Skip animation se già vista o reduced motion
+  if (alreadyShown || matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    w1.textContent = FINAL_1; w2.textContent = FINAL_2;
+    w2.style.color = 'var(--paper)';
+    setTimeout(hideLoader, alreadyShown ? 100 : 600);
+    return;
+  }
+
+  // Animazione: glitch chars per ~700ms, poi reveal progressivo lettera per lettera
+  const TOTAL = FINAL_1.length + FINAL_2.length;
+  const FRAME_MS = 50;        // 20fps
+  const GLITCH_FRAMES = 14;   // 700ms glitch puro
+  const REVEAL_STAGGER = 2;   // 100ms tra una lettera e l'altra (più cinematografico)
+  const TOTAL_FRAMES = GLITCH_FRAMES + TOTAL * REVEAL_STAGGER + 4;
+
+  let frame = 0;
+  function tick() {
+    const out1 = [], out2 = [];
+    for (let i = 0; i < FINAL_1.length; i++) {
+      const revealAt = GLITCH_FRAMES + i * REVEAL_STAGGER;
+      out1.push(frame >= revealAt ? FINAL_1[i] : CHARS[Math.floor(Math.random() * CHARS.length)]);
+    }
+    for (let i = 0; i < FINAL_2.length; i++) {
+      const revealAt = GLITCH_FRAMES + (FINAL_1.length + i) * REVEAL_STAGGER;
+      out2.push(frame >= revealAt ? FINAL_2[i] : CHARS[Math.floor(Math.random() * CHARS.length)]);
+    }
+    w1.textContent = out1.join('');
+    w2.textContent = out2.join('');
+    frame++;
+    if (frame < TOTAL_FRAMES) {
+      setTimeout(tick, FRAME_MS);
+    } else {
+      // Reveal blu finale su DOWN
+      w2.style.transition = 'color .5s ease';
+      w2.style.color = 'var(--paper)';
+      setTimeout(hideLoader, 700);
+    }
+  }
+  tick();
+
+  // Safety net: dopo 4s nasconde comunque
+  setTimeout(() => { if (!loader.classList.contains('gone')) hideLoader(); }, 4000);
+})();
 
 /* ============================================================
    CONFIG & STATE
@@ -2285,32 +2425,122 @@ document.querySelectorAll('.tab').forEach(t => {
 loadStandings();
 
 /* ============================================================
-   LIVE INDICATOR — mantiene il puntino nella nav (Idle/Live)
+   MINI STATS (sotto Mondiale 2026): 4 box estratti dai dati esistenti.
    ============================================================ */
-async function updateLiveIndicator() {
+async function loadMiniStats() {
+  const $ = id => document.getElementById(id);
+  const elPS = $('msPitstop'), elPSs = $('msPitstopSub');
+  const elW = $('msWins'), elWs = $('msWinsSub');
+  const elG = $('msGap'), elGs = $('msGapSub');
+  const elT = $('msTeam'), elTs = $('msTeamSub');
+  if (!elPS) return;
+
+  // 1. Vittorie leader + distacco P1-P2 (driverStandings da Jolpica)
+  try {
+    if (driverStandings.length >= 2) {
+      const p1 = driverStandings[0], p2 = driverStandings[1];
+      elW.textContent = `${p1.wins || 0}`;
+      elWs.textContent = `${p1.Driver.familyName.toUpperCase()} · ${p1.Constructors?.[0]?.name || '—'}`;
+      const gap = Math.abs((Number(p1.points)||0) - (Number(p2.points)||0));
+      elG.textContent = `+${gap}`;
+      elGs.textContent = `${p1.Driver.familyName} → ${p2.Driver.familyName}`;
+    } else if (driverStandings.length === 1) {
+      const p1 = driverStandings[0];
+      elW.textContent = `${p1.wins || 0}`;
+      elWs.textContent = `${p1.Driver.familyName.toUpperCase()}`;
+      elG.textContent = '—';
+      elGs.textContent = 'Solo P1 disponibile';
+    } else {
+      elW.textContent = '—';
+      elWs.textContent = 'In attesa dati';
+      elG.textContent = '—';
+      elGs.textContent = 'In attesa dati';
+    }
+    // 2. Costruttore in testa
+    if (constructorStandings.length >= 1) {
+      const t1 = constructorStandings[0];
+      elT.textContent = (t1.Constructor?.name || '—').toUpperCase();
+      elTs.textContent = `${t1.points || 0} punti`;
+    } else {
+      elT.textContent = '—';
+      elTs.textContent = 'In attesa dati';
+    }
+  } catch (e) { /* tolerated */ }
+
+  // 3. Pitstop più veloce: Jolpica (più affidabile per dati pit ufficiali)
+  try {
+    const [pitData, resData] = await Promise.all([
+      fetchJSON('https://api.jolpi.ca/ergast/f1/current/last/pitstops.json?limit=100', 240),
+      fetchJSON('https://api.jolpi.ca/ergast/f1/current/last/results.json', 240)
+    ]);
+    const race = pitData?.MRData?.RaceTable?.Races?.[0];
+    const pits = race?.PitStops || [];
+    if (pits.length) {
+      // Trova il pit più veloce (durata minima)
+      const valid = pits
+        .map(p => ({ ...p, dur: parseFloat(p.duration) }))
+        .filter(p => p.dur > 0 && p.dur < 60);
+      if (valid.length) {
+        valid.sort((a, b) => a.dur - b.dur);
+        const best = valid[0];
+        elPS.textContent = `${best.dur.toFixed(2)}s`;
+        // Mappa driverId → team dalla classifica gara
+        const results = resData?.MRData?.RaceTable?.Races?.[0]?.Results || [];
+        const driver = results.find(r => r.Driver?.driverId === best.driverId);
+        const teamName = driver?.Constructor?.name || best.driverId;
+        const gpName = race.raceName?.replace(' Grand Prix', ' GP') || '';
+        elPSs.textContent = `${teamName.toUpperCase()} · ${gpName}`;
+      } else {
+        elPS.textContent = '—';
+        elPSs.textContent = 'In attesa dati';
+      }
+    } else {
+      elPS.textContent = '—';
+      elPSs.textContent = 'Nessun pit stop registrato';
+    }
+  } catch (e) {
+    console.warn('pit fail', e);
+    elPS.textContent = '—';
+    elPSs.textContent = 'Dati non disponibili';
+  }
+}
+// chiamata DOPO loadStandings così le globali sono popolate
+setTimeout(loadMiniStats, 2000);
+
+/* ============================================================
+   SESSION STATUS — pallino dentro al countdown box.
+   3 stati: idle (grigio, default) / soon (giallo, <48h) / live (rosso, in corso)
+   ============================================================ */
+async function updateSessionStatus() {
+  const badge = document.getElementById('sessionBadge');
+  const dot = document.getElementById('sessionDot');
+  const lbl = document.getElementById('sessionLbl');
+  if (!badge || !dot || !lbl) return;
+
   let sessions = null;
   try { sessions = await fetchJSON(`${API.openf1}/sessions?session_key=latest`, 5); } catch {}
   const session = sessions?.[0];
-  const dot = document.getElementById('liveDot');
-  const lbl = document.getElementById('liveLabel');
-  if (!dot || !lbl) return;
-  let isLive = false;
+
+  let state = 'idle';
+  let text = 'Prossima sessione';
   if (session) {
     const start = Date.parse(session.date_start);
     const end = Date.parse(session.date_end);
     const now = Date.now();
-    isLive = now >= start && now <= end;
+    if (now >= start && now <= end) {
+      state = 'live';
+      text = 'LIVE · in corso';
+    } else if (start - now > 0 && start - now < 24 * 3600 * 1000) {
+      state = 'soon';
+      text = 'In arrivo · entro 24h';
+    }
   }
-  if (isLive) {
-    dot.classList.remove('idle');
-    lbl.textContent = 'Live';
-  } else {
-    dot.classList.add('idle');
-    lbl.textContent = 'Idle';
-  }
+  badge.dataset.state = state;
+  dot.className = `session-dot ${state}`;
+  lbl.textContent = text;
 }
-updateLiveIndicator();
-setInterval(updateLiveIndicator, 60000);
+updateSessionStatus();
+setInterval(updateSessionStatus, 60000);
 
 /* ============================================================
    NEWSLETTER
@@ -2377,7 +2607,7 @@ function renderFeatCard(a, isFeatured, isFallback) {
   `;
   // Articoli CMS: link a pagina vera. Fallback: div non cliccabile.
   if (!isFallback && a.slug) {
-    return `<a class="feat-card ${isFeatured ? 'feat-card--big' : ''}" href="/articoli/${encodeURIComponent(a.slug)}.html">${inner}</a>`;
+    return `<a class="feat-card ${isFeatured ? 'feat-card--big' : ''}" href="articoli/${encodeURIComponent(a.slug)}.html">${inner}</a>`;
   }
   return `<div class="feat-card feat-card--fallback ${isFeatured ? 'feat-card--big' : ''}" aria-disabled="true">${inner}</div>`;
 }
@@ -2627,17 +2857,17 @@ Newey oggi è in Aston Martin. La AMR26 ha la sua firma — pance estreme, sospe
    prova a sostituire con il CMS se ha articoli reali.
    ============================================================ */
 function slugFromFilename(name) {
-     return String(name)
-       .replace(/\.md$/, '')
-       .replace(/^\d{4}-\d{2}-\d{2}-/, '')
-       .toLowerCase()
-       .replace(/[àáâãä]/g, 'a').replace(/[èéêë]/g, 'e')
-       .replace(/[ìíîï]/g, 'i').replace(/[òóôõö]/g, 'o')
-       .replace(/[ùúûü]/g, 'u').replace(/[ç]/g, 'c').replace(/[ñ]/g, 'n')
-       .replace(/[^a-z0-9-]+/g, '-')
-       .replace(/^-+|-+$/g, '')
-       .slice(0, 80);
-   }
+  return String(name)
+    .replace(/\.md$/, '')
+    .replace(/^\d{4}-\d{2}-\d{2}-/, '')
+    .toLowerCase()
+    .replace(/[àáâãä]/g, 'a').replace(/[èéêë]/g, 'e')
+    .replace(/[ìíîï]/g, 'i').replace(/[òóôõö]/g, 'o')
+    .replace(/[ùúûü]/g, 'u').replace(/[ç]/g, 'c').replace(/[ñ]/g, 'n')
+    .replace(/[^a-z0-9-]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 80);
+}
 
 function renderArticlesList(articles, total, isFallback) {
   const grid = document.getElementById('articlesGrid');
