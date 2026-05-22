@@ -59,8 +59,8 @@ nav {
   padding-right: max(var(--pad-x), env(safe-area-inset-right));
   border-bottom:1px solid var(--blue);
 }
-.nav-logo { font-family:'IBM Plex Sans Condensed',sans-serif; font-size:1.2rem; font-weight:700; letter-spacing:-.5px; color:var(--paper); text-transform:uppercase; display:flex; align-items:center; gap:9px; text-decoration:none; }
-.nav-logo::before { content:''; display:block; width:9px; height:9px; background:var(--blue); animation:blink 1.4s steps(2) infinite; }
+.nav-logo { font-family:'IBM Plex Sans Condensed',sans-serif; font-size:1.2rem; font-weight:700; letter-spacing:-.5px; color:var(--paper); text-transform:uppercase; position:relative; padding-left:20px; text-decoration:none; }
+.nav-logo::before { content:''; position:absolute; left:0; top:50%; transform:translateY(-50%); width:9px; height:9px; background:var(--blue); animation:blink 1.4s steps(2) infinite; }
 @keyframes blink { 50% { opacity:.2; } }
 .nav-logo span { color:var(--blue); }
 .nav-links { display:none; gap:2rem; list-style:none; }
@@ -108,21 +108,6 @@ section { padding:var(--pad-y) var(--pad-x); padding-left:max(var(--pad-x), env(
 .crumb .current { color:var(--paper); }
 
 /* ===== ARTICLES PAGE SPECIFIC ===== */
-.filters {
-  display:flex; flex-wrap:wrap; gap:.5rem; margin-bottom:2.5rem;
-  padding-bottom:1.5rem; border-bottom:1px solid rgba(0,0,0,.12);
-}
-.filter-chip {
-  font-family:'IBM Plex Mono',monospace; font-size:var(--fs-tiny);
-  letter-spacing:.18em; text-transform:uppercase; padding:.6rem 1rem;
-  background:var(--paper); border:1px solid var(--ink); color:var(--ink);
-  cursor:pointer; transition:background .2s, color .2s;
-  -webkit-appearance:none; touch-action:manipulation;
-}
-.filter-chip:hover { background:var(--ink); color:var(--paper); }
-.filter-chip.active { background:var(--blue); color:var(--paper); border-color:var(--blue); }
-.filter-chip .count { opacity:.6; margin-left:.4rem; }
-
 .articles-meta-row {
   display:flex; justify-content:space-between; align-items:center;
   margin-bottom:1.5rem; font-size:var(--fs-micro); letter-spacing:.25em;
@@ -317,13 +302,14 @@ footer { background:var(--ink); color:var(--paper); border-top:1px solid rgba(24
 <div class="cursor-ring" id="cursorRing"></div>
 
 <nav>
-  <a href="index.html" class="nav-logo">CoolDown<span>·</span>F1</a>
+  <a href="index.html" class="nav-logo">Cool<span>Down</span></a>
   <ul class="nav-links">
     <li><a href="index.html">Hero</a></li>
     <li><a href="articoli.html" class="is-current">Articoli</a></li>
-    <li><a href="index.html#ig">Feed</a></li>
+    <li><a href="feed.html">Feed</a></li>
     <li><a href="calendario.html">Calendario</a></li>
     <li><a href="classifica.html">Classifica</a></li>
+    <li><a href="statistiche.html">Stats</a></li>
     <li><a href="index.html#newsletter">Newsletter</a></li>
   </ul>
   <button class="nav-toggle" id="navToggle" aria-label="Menu"><span></span><span></span><span></span></button>
@@ -331,9 +317,10 @@ footer { background:var(--ink); color:var(--paper); border-top:1px solid rgba(24
 <div class="nav-drawer" id="navDrawer">
   <a href="index.html">Hero</a>
   <a href="articoli.html" class="is-current">Articoli</a>
-  <a href="index.html#ig">Feed</a>
+  <a href="feed.html">Feed</a>
   <a href="calendario.html">Calendario</a>
   <a href="classifica.html">Classifica</a>
+  <a href="statistiche.html">Stats</a>
   <a href="index.html#newsletter">Newsletter</a>
 </div>
 
@@ -348,10 +335,6 @@ footer { background:var(--ink); color:var(--paper); border-top:1px solid rgba(24
 </section>
 
 <section style="background:var(--paper); padding-top:3rem;">
-  <div class="filters" id="filters">
-    <button class="filter-chip active" data-tag="all">Tutti <span class="count" id="count-all">·</span></button>
-  </div>
-
   <div class="articles-meta-row">
     <span id="resultsCounter">Caricamento…</span>
     <span id="sourceLabel">Edition 01</span>
@@ -375,7 +358,8 @@ footer { background:var(--ink); color:var(--paper); border-top:1px solid rgba(24
         <li><a href="articoli.html">Articoli</a></li>
         <li><a href="calendario.html">Calendario</a></li>
         <li><a href="classifica.html">Classifica</a></li>
-        <li><a href="index.html#ig">Feed</a></li>
+    <li><a href="statistiche.html">Stats</a></li>
+        <li><a href="feed.html">Feed</a></li>
       </ul>
     </div>
     <div class="foot-col">
@@ -433,7 +417,7 @@ setTimeout(hideLoader, 1200);
   }
   tick();
   window.bindCursorHover = function(root) {
-    (root || document).querySelectorAll('a, button, .feat-card, .filter-chip, .carousel-card, .carousel-btn').forEach(el => {
+    (root || document).querySelectorAll('a, button, .feat-card, .carousel-card, .carousel-btn').forEach(el => {
       if (el.dataset.cursorBound) return;
       el.dataset.cursorBound = '1';
       el.addEventListener('mouseenter', () => c.classList.add('hover'));
@@ -492,7 +476,7 @@ async function fetchJSON(url, ttl=30) {
 }
 
 let ALL_ARTICLES = [];
-let ACTIVE_FILTER = 'all';
+
 
 /* ============================================================
    FALLBACK ARTICLES — Si usano se il CMS è vuoto/offline.
@@ -757,7 +741,7 @@ function renderCarouselCard(a, idx, isFallback) {
       <p class="carousel-card-excerpt">${escapeHTML(a.excerpt)}</p>
       <div class="carousel-card-meta"><span>${formatDate(a.date)}</span><span>${escapeHTML(a.read || '')}</span></div>`;
   if (!isFallback && a.slug) {
-    return `<a class="carousel-card" href="/articoli/${encodeURIComponent(a.slug)}.html">${inner}</a>`;
+    return `<a class="carousel-card" href="articoli/${encodeURIComponent(a.slug)}.html">${inner}</a>`;
   }
   return `<div class="carousel-card carousel-card--fallback" aria-disabled="true">${inner}</div>`;
 }
@@ -819,96 +803,51 @@ function applyFilter() {
   const catArea = document.getElementById('categoriesArea');
   const empty = document.getElementById('emptyState');
 
-  let filtered = ALL_ARTICLES;
-  if (ACTIVE_FILTER !== 'all') {
-    filtered = ALL_ARTICLES.filter(a => (a.tag || '').toLowerCase() === ACTIVE_FILTER.toLowerCase());
-  }
-
-  if (!filtered.length) {
-    catArea.innerHTML = '<div class="empty-state">Nessun articolo in questa categoria.</div>';
+  if (!ALL_ARTICLES.length) {
+    catArea.innerHTML = '<div class="empty-state">Nessun articolo disponibile.</div>';
     counter.textContent = '0 articoli';
     return;
   }
 
-  counter.textContent = `${filtered.length} articol${filtered.length === 1 ? 'o' : 'i'}${ACTIVE_FILTER !== 'all' ? ' · ' + ACTIVE_FILTER : ''}`;
+  counter.textContent = `${ALL_ARTICLES.length} articol${ALL_ARTICLES.length === 1 ? 'o' : 'i'}`;
 
-  if (ACTIVE_FILTER !== 'all') {
-    // Singola categoria → un solo carosello
-    catArea.innerHTML = renderCarouselSection(ACTIVE_FILTER, filtered, IS_FALLBACK);
-  } else {
-    // Tutti → un carosello per categoria, ordinati per categoria con + articoli prima
-    const groups = {};
-    ALL_ARTICLES.forEach(a => {
-      const t = a.tag || 'Altro';
-      if (!groups[t]) groups[t] = [];
-      groups[t].push(a);
-    });
-    // Ordine fisso: Analisi, Tech, Storia, Cultura, Opinione, Data, Long-form, poi altri alfabetici
-    const preferredOrder = ['Analisi', 'Tech', 'Storia', 'Cultura', 'Opinione', 'Data', 'Long-form'];
-    const orderedTags = [
-      ...preferredOrder.filter(t => groups[t]),
-      ...Object.keys(groups).filter(t => !preferredOrder.includes(t)).sort()
-    ];
-    catArea.innerHTML = orderedTags.map(tag => renderCarouselSection(tag, groups[tag], IS_FALLBACK)).join('');
-  }
+  // Raggruppa per categoria, ordine fisso
+  const groups = {};
+  ALL_ARTICLES.forEach(a => {
+    const t = a.tag || 'Altro';
+    if (!groups[t]) groups[t] = [];
+    groups[t].push(a);
+  });
+  const preferredOrder = ['Analisi', 'Tech', 'Storia', 'Cultura', 'Opinione', 'Data', 'Long-form'];
+  const orderedTags = [
+    ...preferredOrder.filter(t => groups[t]),
+    ...Object.keys(groups).filter(t => !preferredOrder.includes(t)).sort()
+  ];
+  catArea.innerHTML = orderedTags.map(tag => renderCarouselSection(tag, groups[tag], IS_FALLBACK)).join('');
+
   if (empty) empty.remove();
   if (window.bindCursorHover) window.bindCursorHover(catArea);
   bindCarouselNav(catArea);
 }
 
-function buildFilters() {
-  const wrap = document.getElementById('filters');
-  // mantieni solo il chip "Tutti"
-  wrap.querySelectorAll('.filter-chip:not([data-tag="all"])').forEach(c => c.remove());
-
-  const counts = {};
-  ALL_ARTICLES.forEach(a => {
-    const t = a.tag || 'Altro';
-    counts[t] = (counts[t] || 0) + 1;
-  });
-  document.getElementById('count-all').textContent = ALL_ARTICLES.length;
-  const preferredOrder = ['Analisi', 'Tech', 'Storia', 'Cultura', 'Opinione', 'Data', 'Long-form'];
-  const tags = [
-    ...preferredOrder.filter(t => counts[t]),
-    ...Object.keys(counts).filter(t => !preferredOrder.includes(t)).sort()
-  ];
-  tags.forEach(t => {
-    const b = document.createElement('button');
-    b.className = 'filter-chip';
-    b.dataset.tag = t;
-    b.innerHTML = `${escapeHTML(t)} <span class="count">${counts[t]}</span>`;
-    wrap.appendChild(b);
-  });
-  wrap.querySelectorAll('.filter-chip').forEach(chip => {
-    chip.addEventListener('click', () => {
-      wrap.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
-      chip.classList.add('active');
-      ACTIVE_FILTER = chip.dataset.tag;
-      applyFilter();
-    });
-  });
-  if (window.bindCursorHover) window.bindCursorHover(wrap);
+function slugFromFilename(name) {
+  return String(name)
+    .replace(/\.md$/, '')
+    .replace(/^\d{4}-\d{2}-\d{2}-/, '')
+    .toLowerCase()
+    .replace(/[àáâãä]/g, 'a').replace(/[èéêë]/g, 'e')
+    .replace(/[ìíîï]/g, 'i').replace(/[òóôõö]/g, 'o')
+    .replace(/[ùúûü]/g, 'u').replace(/[ç]/g, 'c').replace(/[ñ]/g, 'n')
+    .replace(/[^a-z0-9-]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 80);
 }
 
-function slugFromFilename(name) {
-     return String(name)
-       .replace(/\.md$/, '')
-       .replace(/^\d{4}-\d{2}-\d{2}-/, '')
-       .toLowerCase()
-       .replace(/[àáâãä]/g, 'a').replace(/[èéêë]/g, 'e')
-       .replace(/[ìíîï]/g, 'i').replace(/[òóôõö]/g, 'o')
-       .replace(/[ùúûü]/g, 'u').replace(/[ç]/g, 'c').replace(/[ñ]/g, 'n')
-       .replace(/[^a-z0-9-]+/g, '-')
-       .replace(/^-+|-+$/g, '')
-       .slice(0, 80);
-   }
-  
 function renderAll(articles, fromFallback) {
   ALL_ARTICLES = articles;
   IS_FALLBACK = !!fromFallback;
   const lbl = document.getElementById('sourceLabel');
   if (lbl) lbl.textContent = fromFallback ? 'Anteprima · Edition 01' : 'Edition 01';
-  buildFilters();
   applyFilter();
 }
 
