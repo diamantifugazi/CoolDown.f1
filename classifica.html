@@ -42,8 +42,8 @@ body { font-family:'IBM Plex Mono','Courier New',Courier,monospace; font-size:va
 
 /* NAV */
 nav { position:fixed; top:0; left:0; right:0; z-index:500; height:60px; background:rgba(10,10,10,0.96); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); display:flex; align-items:center; justify-content:space-between; padding:0 var(--pad-x); padding-left:max(var(--pad-x), env(safe-area-inset-left)); padding-right:max(var(--pad-x), env(safe-area-inset-right)); border-bottom:1px solid var(--blue); }
-.nav-logo { font-family:'IBM Plex Sans Condensed',sans-serif; font-size:1.2rem; font-weight:700; letter-spacing:-.5px; color:var(--paper); text-transform:uppercase; display:flex; align-items:center; gap:9px; text-decoration:none; }
-.nav-logo::before { content:''; display:block; width:9px; height:9px; background:var(--blue); animation:blink 1.4s steps(2) infinite; }
+.nav-logo { font-family:'IBM Plex Sans Condensed',sans-serif; font-size:1.2rem; font-weight:700; letter-spacing:-.5px; color:var(--paper); text-transform:uppercase; position:relative; padding-left:20px; text-decoration:none; }
+.nav-logo::before { content:''; position:absolute; left:0; top:50%; transform:translateY(-50%); width:9px; height:9px; background:var(--blue); animation:blink 1.4s steps(2) infinite; }
 @keyframes blink { 50% { opacity:.2; } }
 .nav-logo span { color:var(--blue); }
 .nav-links { display:none; gap:2rem; list-style:none; }
@@ -120,33 +120,6 @@ section { padding:var(--pad-y) var(--pad-x); padding-left:max(var(--pad-x), env(
 @media (min-width: 768px) { .st-pts { font-size:1.6rem; } }
 .st-pts-l { font-size:var(--fs-micro); letter-spacing:2px; color:var(--mid); text-transform:uppercase; text-align:right; margin-top:.2rem; }
 
-/* STATS SECTION */
-.stats { background:var(--paper-warm); border-top:1px solid rgba(0,0,0,.08); }
-.stats-grid {
-  display:grid; grid-template-columns:1fr; gap:1px;
-  background:rgba(0,0,0,.15); border:1px solid rgba(0,0,0,.15);
-}
-@media (min-width: 480px) { .stats-grid { grid-template-columns:repeat(2, 1fr); } }
-@media (min-width: 900px) { .stats-grid { grid-template-columns:repeat(3, 1fr); } }
-@media (min-width: 1200px) { .stats-grid { grid-template-columns:repeat(4, 1fr); } }
-.stat-cell { background:var(--paper); padding:1.4rem 1.2rem; min-height:130px; display:flex; flex-direction:column; justify-content:space-between; }
-.stat-cell .lbl { font-size:var(--fs-micro); letter-spacing:3px; color:var(--mid); text-transform:uppercase; margin-bottom:.5rem; }
-.stat-cell .val { font-family:'IBM Plex Sans Condensed',sans-serif; font-size:2.4rem; font-weight:700; line-height:1; color:var(--ink); letter-spacing:-1px; }
-.stat-cell .val.small { font-size:1.3rem; letter-spacing:-.3px; }
-.stat-cell .sub { font-size:.7rem; color:var(--mid); margin-top:.3rem; letter-spacing:1.5px; text-transform:uppercase; }
-
-/* INSIGHTS */
-.insights { background:var(--ink); color:var(--paper); }
-.insights .eyebrow { color:var(--blue); }
-.insights .section-title { color:var(--paper); }
-.insights .section-title em { color:var(--blue); }
-.insights-grid { display:grid; grid-template-columns:1fr; gap:1px; background:rgba(242,241,237,.15); border:1px solid rgba(242,241,237,.15); }
-@media (min-width: 768px) { .insights-grid { grid-template-columns:repeat(2, 1fr); } }
-.insight-cell { background:var(--ink); padding:1.5rem 1.4rem; }
-.insight-lbl { font-size:var(--fs-micro); letter-spacing:3px; color:var(--blue); text-transform:uppercase; margin-bottom:.6rem; }
-.insight-val { font-family:'IBM Plex Sans Condensed',sans-serif; font-size:1.4rem; font-weight:700; color:var(--paper); line-height:1.1; letter-spacing:-.3px; text-transform:uppercase; }
-.insight-sub { font-size:.72rem; color:rgba(242,241,237,.6); margin-top:.4rem; letter-spacing:1.5px; text-transform:uppercase; line-height:1.5; }
-
 /* FOOTER */
 footer { background:var(--ink); color:var(--paper); border-top:1px solid rgba(242,241,237,.15); padding:3rem var(--pad-x) 2rem; padding-left:max(var(--pad-x), env(safe-area-inset-left)); padding-right:max(var(--pad-x), env(safe-area-inset-right)); padding-bottom:max(2rem, env(safe-area-inset-bottom)); }
 .foot-top { display:grid; grid-template-columns:1fr; gap:2rem; margin-bottom:3rem; }
@@ -183,13 +156,14 @@ footer { background:var(--ink); color:var(--paper); border-top:1px solid rgba(24
 <div class="cursor-ring" id="cursorRing"></div>
 
 <nav>
-  <a href="index.html" class="nav-logo">CoolDown<span>·</span>F1</a>
+  <a href="index.html" class="nav-logo">Cool<span>Down</span></a>
   <ul class="nav-links">
     <li><a href="index.html">Hero</a></li>
     <li><a href="articoli.html">Articoli</a></li>
-    <li><a href="index.html#ig">Feed</a></li>
+    <li><a href="feed.html">Feed</a></li>
     <li><a href="calendario.html">Calendario</a></li>
     <li><a href="classifica.html" class="is-current">Classifica</a></li>
+    <li><a href="statistiche.html">Stats</a></li>
     <li><a href="index.html#newsletter">Newsletter</a></li>
   </ul>
   <button class="nav-toggle" id="navToggle" aria-label="Menu"><span></span><span></span><span></span></button>
@@ -197,9 +171,10 @@ footer { background:var(--ink); color:var(--paper); border-top:1px solid rgba(24
 <div class="nav-drawer" id="navDrawer">
   <a href="index.html">Hero</a>
   <a href="articoli.html">Articoli</a>
-  <a href="index.html#ig">Feed</a>
+  <a href="feed.html">Feed</a>
   <a href="calendario.html">Calendario</a>
   <a href="classifica.html" class="is-current">Classifica</a>
+  <a href="statistiche.html">Stats</a>
   <a href="index.html#newsletter">Newsletter</a>
 </div>
 
@@ -240,82 +215,6 @@ footer { background:var(--ink); color:var(--paper); border-top:1px solid rgba(24
   </div>
 </section>
 
-<section class="stats">
-  <div class="eyebrow">// Numbers</div>
-  <h2 class="section-title">Stats <em>stagione</em></h2>
-
-  <div class="stats-grid">
-    <div class="stat-cell">
-      <div class="lbl">// Vittorie del leader</div>
-      <div class="val" id="s-leader-wins">—</div>
-      <div class="sub" id="s-leader-name">—</div>
-    </div>
-    <div class="stat-cell">
-      <div class="lbl">// Gare disputate</div>
-      <div class="val" id="s-races-run">—</div>
-      <div class="sub" id="s-races-tot">/ — totali</div>
-    </div>
-    <div class="stat-cell">
-      <div class="lbl">// Costruttore top</div>
-      <div class="val small" id="s-top-team">—</div>
-      <div class="sub" id="s-top-team-pts">— pti</div>
-    </div>
-    <div class="stat-cell">
-      <div class="lbl">// Distacco P1→P2 piloti</div>
-      <div class="val" id="s-gap-driver">—</div>
-      <div class="sub">punti</div>
-    </div>
-    <div class="stat-cell">
-      <div class="lbl">// Distacco P1→P2 team</div>
-      <div class="val" id="s-gap-team">—</div>
-      <div class="sub">punti</div>
-    </div>
-    <div class="stat-cell">
-      <div class="lbl">// Pole position leader</div>
-      <div class="val" id="s-leader-poles">—</div>
-      <div class="sub" id="s-leader-poles-sub">qualifiche</div>
-    </div>
-    <div class="stat-cell">
-      <div class="lbl">// Giri veloci leader</div>
-      <div class="val" id="s-leader-fl">—</div>
-      <div class="sub" id="s-leader-fl-sub">in gara</div>
-    </div>
-    <div class="stat-cell">
-      <div class="lbl">// Podi leader</div>
-      <div class="val" id="s-leader-podiums">—</div>
-      <div class="sub">su <span id="s-leader-podiums-tot">—</span> gare</div>
-    </div>
-  </div>
-</section>
-
-<section class="insights">
-  <div class="eyebrow">// Trends</div>
-  <h2 class="section-title">Insights <em>2026</em></h2>
-
-  <div class="insights-grid">
-    <div class="insight-cell">
-      <div class="insight-lbl">// Piloti vincitori diversi</div>
-      <div class="insight-val" id="s-different-winners">—</div>
-      <div class="insight-sub">in <span id="s-winners-of">—</span> gare disputate</div>
-    </div>
-    <div class="insight-cell">
-      <div class="insight-lbl">// Costruttori a podio</div>
-      <div class="insight-val" id="s-different-podium-teams">—</div>
-      <div class="insight-sub">team almeno una volta sul podio</div>
-    </div>
-    <div class="insight-cell">
-      <div class="insight-lbl">// Pole position diverse</div>
-      <div class="insight-val" id="s-different-polesitters">—</div>
-      <div class="insight-sub">piloti hanno conquistato la prima fila</div>
-    </div>
-    <div class="insight-cell">
-      <div class="insight-lbl">// Punti medi a gara</div>
-      <div class="insight-val" id="s-avg-points">—</div>
-      <div class="insight-sub">per il leader del mondiale</div>
-    </div>
-  </div>
-</section>
-
 <footer>
   <div class="foot-top">
     <div>
@@ -328,7 +227,8 @@ footer { background:var(--ink); color:var(--paper); border-top:1px solid rgba(24
         <li><a href="articoli.html">Articoli</a></li>
         <li><a href="calendario.html">Calendario</a></li>
         <li><a href="classifica.html">Classifica</a></li>
-        <li><a href="index.html#ig">Feed</a></li>
+    <li><a href="statistiche.html">Stats</a></li>
+        <li><a href="feed.html">Feed</a></li>
       </ul>
     </div>
     <div class="foot-col">
@@ -525,9 +425,6 @@ async function loadAll() {
 
   renderStandings('drivers');
   renderLeaders();
-  renderStats(racesRun, allRaces.length);
-  // Fetch race results for insights (parallel + bounded)
-  await loadInsights(racesRun, qualiRaces);
 }
 
 function renderLeaders() {
@@ -542,84 +439,6 @@ function renderLeaders() {
     document.getElementById('lead-team').textContent = lt.Constructor.name;
     document.getElementById('lead-team-pts').textContent = lt.points;
     document.getElementById('lead-team-wins').textContent = lt.wins || '0';
-  }
-}
-
-function renderStats(racesRun, racesTot) {
-  if (driverStandings.length) {
-    const ld = driverStandings[0];
-    document.getElementById('s-leader-wins').textContent = ld.wins || '0';
-    document.getElementById('s-leader-name').textContent = `${ld.Driver.givenName.charAt(0)}. ${ld.Driver.familyName}`;
-    if (driverStandings[1]) {
-      const gap = (+ld.points) - (+driverStandings[1].points);
-      document.getElementById('s-gap-driver').textContent = `+${gap}`;
-    }
-  }
-  if (constructorStandings.length) {
-    const lt = constructorStandings[0];
-    document.getElementById('s-top-team').textContent = lt.Constructor.name;
-    document.getElementById('s-top-team-pts').textContent = `${lt.points} pti`;
-    if (constructorStandings[1]) {
-      const gap = (+lt.points) - (+constructorStandings[1].points);
-      document.getElementById('s-gap-team').textContent = `+${gap}`;
-    }
-  }
-  document.getElementById('s-races-run').textContent = String(racesRun).padStart(2, '0');
-  document.getElementById('s-races-tot').textContent = `/ ${String(racesTot).padStart(2, '0')} totali`;
-  document.getElementById('s-leader-podiums-tot').textContent = String(racesRun).padStart(2, '0');
-  document.getElementById('s-winners-of').textContent = String(racesRun).padStart(2, '0');
-}
-
-/* INSIGHTS — fetch all race results + qualifying, compute stats */
-async function loadInsights(racesRun, qualiRaces) {
-  const allRes = await fetchJSON('https://api.jolpi.ca/ergast/f1/current/results.json?limit=500', 240);
-  const races = allRes?.MRData?.RaceTable?.Races || [];
-  if (!races.length) return;
-
-  const leaderId = driverStandings[0]?.Driver?.driverId;
-  let leaderPoles = 0, leaderFLs = 0, leaderPodiums = 0;
-  const winners = new Set();
-  const podiumTeams = new Set();
-
-  races.forEach(race => {
-    const results = race.Results || [];
-    if (results[0]) winners.add(results[0].Driver.driverId);
-    results.slice(0, 3).forEach(r => podiumTeams.add(r.Constructor.constructorId));
-    // leader-specific
-    if (leaderId) {
-      results.forEach(r => {
-        if (r.Driver.driverId === leaderId) {
-          const pos = +r.position;
-          if (pos <= 3) leaderPodiums++;
-          if (r.FastestLap && r.FastestLap.rank === '1') leaderFLs++;
-        }
-      });
-    }
-  });
-
-  // Polesitters (from qualifying)
-  const polesitters = new Set();
-  qualiRaces.forEach(qr => {
-    const p1 = qr.QualifyingResults?.[0];
-    if (p1) {
-      polesitters.add(p1.Driver.driverId);
-      if (leaderId && p1.Driver.driverId === leaderId) leaderPoles++;
-    }
-  });
-
-  document.getElementById('s-leader-poles').textContent = leaderPoles;
-  document.getElementById('s-leader-poles-sub').textContent = `su ${qualiRaces.length} qualifiche`;
-  document.getElementById('s-leader-fl').textContent = leaderFLs;
-  document.getElementById('s-leader-fl-sub').textContent = `su ${races.length} gare`;
-  document.getElementById('s-leader-podiums').textContent = leaderPodiums;
-  document.getElementById('s-different-winners').textContent = winners.size;
-  document.getElementById('s-different-podium-teams').textContent = podiumTeams.size;
-  document.getElementById('s-different-polesitters').textContent = polesitters.size;
-
-  // avg points/race for the leader
-  if (driverStandings.length && racesRun > 0) {
-    const avg = (+driverStandings[0].points / racesRun).toFixed(1);
-    document.getElementById('s-avg-points').textContent = avg;
   }
 }
 
