@@ -97,6 +97,18 @@ collections:
         default: "5 min"
         hint: 'Es: "6 min", "11 min". Mostrato nelle card.'
 
+      - label: "Autore"
+        name: "author"
+        widget: "string"
+        required: false
+        hint: "Nome di chi ha scritto l'articolo. Mostrato sotto al titolo nella pagina articolo. Se vuoto, appare 'CoolDown F1'."
+
+      - label: "Revisione di"
+        name: "reviewer"
+        widget: "string"
+        required: false
+        hint: "Nome di chi ha revisionato l'articolo. Es: 'Davide Fugazzotto'. Se vuoto, non viene mostrato."
+
       - label: "Sommario"
         name: "excerpt"
         widget: "string"
