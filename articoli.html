@@ -1,0 +1,907 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta name="theme-color" content="#0033FF" />
+<meta name="description" content="CoolDown · F1 — Tutti gli articoli, divisi per categoria." />
+<title>Articoli · CoolDown · F1</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="preload" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600;700&family=IBM+Plex+Sans+Condensed:wght@400;500;600;700&family=IBM+Plex+Serif:ital,wght@1,400&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'" />
+<noscript><link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600;700&family=IBM+Plex+Sans+Condensed:wght@400;500;600;700&family=IBM+Plex+Serif:ital,wght@1,400&display=swap" rel="stylesheet" /></noscript>
+
+<style>
+/* ===== BASE (shared with index.html) ===== */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+:root {
+  --blue:#0033FF; --blue-dark:#0020B8; --blue-deep:#001580; --blue-glow:#2D2DFF;
+  --paper:#F2F1ED; --paper-warm:#EBEAE4; --ink:#0A0A0A; --ink-soft:#1A1A1A;
+  --mid:#555; --mid-soft:#999; --red:#FF2200; --green:#00B86B; --amber:#FFB800;
+  --fs-micro:0.5rem; --fs-tiny:0.6rem; --fs-mono:0.72rem; --fs-body:0.85rem;
+  --fs-h:clamp(2rem, 6vw, 4.5rem);
+  --pad-x:1.25rem; --pad-y:4rem; --gutter:1rem;
+}
+@media (min-width: 768px)  { :root { --pad-x:2.5rem; --pad-y:6rem; --gutter:1.5rem; } }
+@media (min-width: 1200px) { :root { --pad-x:4rem;   --pad-y:8rem; } }
+
+body {
+  font-family:'IBM Plex Mono','Courier New',Courier,monospace;
+  font-size:var(--fs-body); background:var(--paper); color:var(--ink); line-height:1.5;
+  -webkit-font-smoothing:antialiased; cursor:none;
+}
+@media (hover: none) { body { cursor:auto; } }
+::selection { background:var(--blue); color:var(--paper); }
+
+/* CURSOR */
+.cursor { position:fixed; top:0; left:0; width:10px; height:10px; background:var(--blue); border-radius:50%; pointer-events:none; z-index:10000; transition:transform .12s cubic-bezier(.2,.7,.3,1), width .2s, height .2s, background .5s ease; transform:translate(-50%, -50%); }
+.cursor.hover { width:36px; height:36px; mix-blend-mode:difference; background:var(--paper); }
+.cursor-ring { position:fixed; top:0; left:0; width:36px; height:36px; border:1px solid var(--blue); border-radius:50%; pointer-events:none; z-index:9999; transition:transform .35s cubic-bezier(.2,.7,.3,1), border-color .5s ease; transform:translate(-50%, -50%); opacity:.6; }
+@media (hover: none) { .cursor, .cursor-ring { display:none; } }
+@media (hover: hover) {
+  body::before {
+    content:''; position:fixed; inset:0;
+    background-image: radial-gradient(circle, rgba(0,0,0,0.08) .8px, transparent .8px), radial-gradient(circle, rgba(0,0,0,0.04) .4px, transparent .4px);
+    background-size: 4px 4px, 2px 2px; background-position: 0 0, 1px 1px;
+    pointer-events:none; z-index:9998; opacity:.6;
+  }
+}
+
+/* NAV */
+nav {
+  position:fixed; top:0; left:0; right:0; z-index:500; height:60px;
+  background:rgba(10,10,10,0.96); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px);
+  display:flex; align-items:center; justify-content:space-between;
+  padding:0 var(--pad-x);
+  padding-left: max(var(--pad-x), env(safe-area-inset-left));
+  padding-right: max(var(--pad-x), env(safe-area-inset-right));
+  border-bottom:1px solid var(--blue);
+}
+.nav-logo { font-family:'IBM Plex Sans Condensed',sans-serif; font-size:1.2rem; font-weight:700; letter-spacing:-.5px; color:var(--paper); text-transform:uppercase; position:relative; padding-left:20px; text-decoration:none; }
+.nav-logo::before { content:''; position:absolute; left:0; top:50%; transform:translateY(-50%); width:9px; height:9px; background:var(--blue); animation:blink 1.4s steps(2) infinite; }
+@keyframes blink { 50% { opacity:.2; } }
+.nav-logo span { color:var(--blue); }
+.nav-links { display:none; gap:2rem; list-style:none; }
+@media (min-width: 880px) { .nav-links { display:flex; } }
+.nav-links a { font-size:.68rem; font-weight:500; letter-spacing:.24em; color:rgba(242,241,237,0.55); text-decoration:none; text-transform:uppercase; position:relative; transition:color .2s; }
+.nav-links a:hover, .nav-links a.is-current { color:var(--paper); }
+.nav-links a::after { content:''; position:absolute; left:0; bottom:-12px; width:0; height:1px; background:var(--blue); transition:width .25s; }
+.nav-links a:hover::after, .nav-links a.is-current::after { width:100%; }
+.nav-toggle { display:flex; flex-direction:column; gap:4px; cursor:pointer; background:none; border:none; padding:4px; }
+@media (min-width: 880px) { .nav-toggle { display:none; } }
+.nav-toggle span { display:block; width:22px; height:2px; background:var(--paper); }
+.nav-drawer { position:fixed; top:60px; left:0; right:0; bottom:0; background:var(--ink); z-index:499; padding:3rem var(--pad-x); padding-bottom:max(3rem, env(safe-area-inset-bottom)); overflow-y:auto; -webkit-overflow-scrolling:touch; transform:translateX(100%); transition:transform .4s cubic-bezier(.7,0,.3,1); }
+.nav-drawer.open { transform:translateX(0); }
+.nav-drawer a { display:block; font-family:'IBM Plex Sans Condensed',sans-serif; font-size:2.2rem; font-weight:700; color:var(--paper); text-decoration:none; text-transform:uppercase; padding:.6rem 0; border-bottom:1px solid rgba(255,255,255,0.1); letter-spacing:-1px; }
+.nav-drawer a:hover, .nav-drawer a.is-current { color:var(--blue); }
+
+/* SECTION + EDITORIAL */
+.eyebrow { font-size:var(--fs-micro); font-weight:600; letter-spacing:.3em; color:var(--blue); text-transform:uppercase; display:flex; align-items:center; gap:10px; margin-bottom:.75rem; }
+.eyebrow::before { content:''; display:block; width:8px; height:8px; background:var(--blue); }
+.section-title { font-family:'IBM Plex Sans Condensed',sans-serif; font-size:var(--fs-h); font-weight:700; line-height:.92; letter-spacing:-1.5px; text-transform:uppercase; margin-bottom:2.5rem; }
+.section-title em { font-family:'IBM Plex Serif',serif; font-style:italic; font-weight:400; color:var(--blue); }
+section { padding:var(--pad-y) var(--pad-x); padding-left:max(var(--pad-x), env(safe-area-inset-left)); padding-right:max(var(--pad-x), env(safe-area-inset-right)); position:relative; }
+
+/* SUBPAGE HERO STRIP — compatto, blu */
+.subhero {
+  background:var(--blue); color:var(--paper); padding-top:96px; padding-bottom:3rem;
+  padding-left:max(var(--pad-x), env(safe-area-inset-left)); padding-right:max(var(--pad-x), env(safe-area-inset-right));
+  padding-left:var(--pad-x); padding-right:var(--pad-x);
+  position:relative; overflow:hidden;
+}
+.subhero::before { content:''; position:absolute; inset:0; background-image:radial-gradient(circle, rgba(242,241,237,.18) 1.5px, transparent 1.8px); background-size:18px 18px; pointer-events:none; z-index:0; }
+.subhero > * { position:relative; z-index:1; }
+.subhero-meta { display:flex; justify-content:space-between; align-items:flex-start; font-size:var(--fs-micro); letter-spacing:.2em; text-transform:uppercase; color:rgba(242,241,237,.55); margin-bottom:1.5rem; }
+.subhero-meta-r { text-align:right; display:none; }
+@media (min-width: 480px) { .subhero-meta-r { display:block; } }
+.subhero-title { font-family:'IBM Plex Sans Condensed',sans-serif; font-size:clamp(2.5rem, 10vw, 7rem); font-weight:700; line-height:.9; letter-spacing:-2px; color:var(--paper); text-transform:uppercase; }
+.subhero-sub { display:block; font-family:'IBM Plex Mono',monospace; font-size:clamp(.78rem, 2vw, 1rem); font-weight:400; letter-spacing:4px; color:rgba(242,241,237,.6); margin-top:1rem; text-transform:uppercase; max-width:640px; }
+.subhero-sub em { font-family:'IBM Plex Serif',serif; font-style:italic; color:var(--paper); letter-spacing:0; }
+
+/* BREADCRUMB */
+.crumb { display:inline-flex; align-items:center; gap:.7rem; font-size:var(--fs-micro); letter-spacing:.25em; color:rgba(242,241,237,.55); text-transform:uppercase; margin-bottom:1.25rem; }
+.crumb a { color:rgba(242,241,237,.55); text-decoration:none; transition:color .2s; }
+.crumb a:hover { color:var(--paper); }
+.crumb .sep { opacity:.5; }
+.crumb .current { color:var(--paper); }
+
+/* ===== ARTICLES PAGE SPECIFIC ===== */
+.articles-meta-row {
+  display:flex; justify-content:space-between; align-items:center;
+  margin-bottom:1.5rem; font-size:var(--fs-micro); letter-spacing:.25em;
+  color:var(--mid); text-transform:uppercase;
+}
+
+/* Articles list — magazine grid (1 featured + many) */
+.feat-grid {
+  display:grid; grid-template-columns:1fr; gap:1px;
+  background:rgba(0,0,0,.12); border:1px solid rgba(0,0,0,.12);
+  margin-bottom:2.5rem;
+}
+@media (min-width: 900px) {
+  .feat-grid { grid-template-columns:1.4fr 1fr; grid-template-rows:auto auto; }
+  .feat-card--big { grid-row:span 2; }
+}
+.feat-card {
+  background:var(--paper); padding:1.5rem 1.25rem; cursor:pointer; position:relative;
+  overflow:hidden; display:flex; flex-direction:column; gap:.6rem; transition:background .25s;
+}
+.feat-card:hover { background:var(--blue); color:var(--paper); }
+.feat-card:hover .feat-cat, .feat-card:hover .feat-meta { color:rgba(242,241,237,.7); }
+.feat-card:hover .feat-excerpt { color:rgba(242,241,237,.85); }
+.feat-card:hover .feat-meta { border-top-color:rgba(242,241,237,.3); }
+.feat-cat { font-size:var(--fs-micro); letter-spacing:.25em; color:var(--blue); text-transform:uppercase; transition:color .25s; }
+.feat-title { font-family:'IBM Plex Sans Condensed',sans-serif; font-size:1.35rem; font-weight:700; line-height:1.05; letter-spacing:-.5px; text-transform:uppercase; }
+.feat-card--big .feat-title { font-size:2rem; }
+@media (min-width: 900px) { .feat-card--big .feat-title { font-size:2.8rem; } }
+.feat-cover { aspect-ratio:16/10; min-height:160px; background:var(--blue); margin:.5rem 0; position:relative; overflow:hidden; }
+.feat-cover.has-cover {
+  background-color: var(--mid-soft);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+.feat-cover.has-cover::before { display: none; }
+.feat-excerpt { font-size:.78rem; color:var(--mid); line-height:1.55; }
+.feat-meta { margin-top:auto; padding-top:.7rem; display:flex; justify-content:space-between; border-top:1px solid rgba(0,0,0,.15); font-size:var(--fs-micro); letter-spacing:.2em; color:var(--mid); text-transform:uppercase; transition:color .25s; }
+
+/* halftone variants for covers — used by carousel-card-cover */
+.ac-v0, .ac-v1, .ac-v2 { position:relative; }
+.ac-v0::before, .ac-v1::before, .ac-v2::before { content:''; position:absolute; inset:0; pointer-events:none; z-index:1; }
+.ac-v0::before { background:radial-gradient(circle, rgba(242,241,237,.88) 1.5px, transparent 2px) 0 0 / 8px 8px; -webkit-mask-image:linear-gradient(135deg, transparent 15%, black 75%); mask-image:linear-gradient(135deg, transparent 15%, black 75%); }
+.ac-v1::before { background:radial-gradient(circle, rgba(242,241,237,.8) 2px, transparent 2.5px) 0 0 / 10px 10px; -webkit-mask-image:radial-gradient(ellipse 60% 60% at 50% 50%, black 20%, transparent 70%); mask-image:radial-gradient(ellipse 60% 60% at 50% 50%, black 20%, transparent 70%); }
+.ac-v2::before { background:radial-gradient(circle, rgba(242,241,237,.75) 1px, transparent 1.5px) 0 0 / 6px 6px; -webkit-mask-image:linear-gradient(to bottom, black 0%, transparent 90%); mask-image:linear-gradient(to bottom, black 0%, transparent 90%); }
+
+/* ===== FOOTER ===== */
+footer { background:var(--ink); color:var(--paper); border-top:1px solid rgba(242,241,237,.15); padding:3rem var(--pad-x) 2rem; padding-left:max(var(--pad-x), env(safe-area-inset-left)); padding-right:max(var(--pad-x), env(safe-area-inset-right)); padding-bottom:max(2rem, env(safe-area-inset-bottom)); }
+.foot-top { display:grid; grid-template-columns:1fr; gap:2rem; margin-bottom:3rem; }
+@media (min-width: 768px) { .foot-top { grid-template-columns:2fr 1fr 1fr 1fr; } }
+.foot-brand { font-family:'IBM Plex Sans Condensed',sans-serif; font-size:3rem; font-weight:700; text-transform:uppercase; line-height:.9; letter-spacing:-1.5px; }
+.foot-brand span { color:var(--blue); }
+.foot-brand-sub { font-family:'IBM Plex Mono',monospace; font-size:.7rem; letter-spacing:3px; color:rgba(242,241,237,.5); text-transform:uppercase; margin-top:.5rem; }
+.foot-col h4 { font-size:var(--fs-micro); letter-spacing:.25em; color:var(--blue); text-transform:uppercase; margin-bottom:1rem; font-weight:600; }
+.foot-col ul { list-style:none; display:flex; flex-direction:column; gap:.5rem; }
+.foot-col a { font-size:.78rem; color:rgba(242,241,237,.7); text-decoration:none; letter-spacing:1px; transition:color .2s; }
+.foot-col a:hover { color:var(--blue); }
+.foot-bottom { padding-top:1.5rem; border-top:1px solid rgba(242,241,237,.15); display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem; font-size:var(--fs-micro); letter-spacing:.2em; color:rgba(242,241,237,.4); text-transform:uppercase; }
+
+/* LOADER */
+.loader { position:fixed; inset:0; background:var(--blue); z-index:99999; display:flex; align-items:center; justify-content:center; flex-direction:column; gap:1.5rem; transition:opacity .5s, visibility .5s; animation:loaderAutohide 3s forwards; }
+.loader.gone { opacity:0; visibility:hidden; pointer-events:none; animation:none; }
+@keyframes loaderAutohide { 0%,73% { opacity:1; visibility:visible; } 100% { opacity:0; visibility:hidden; pointer-events:none; } }
+.loader-logo { font-family:'IBM Plex Sans Condensed',sans-serif; font-size:3rem; font-weight:700; letter-spacing:-1px; color:var(--paper); text-transform:uppercase; }
+.loader-bar { width:200px; height:4px; background:rgba(242,241,237,.2); position:relative; overflow:hidden; }
+.loader-bar::after { content:''; position:absolute; left:0; top:0; width:30%; height:100%; background:var(--paper); animation:load 1.2s ease-in-out infinite; }
+@keyframes load { 0% { left:-30%; } 100% { left:100%; } }
+.loader-meta { font-size:.6rem; letter-spacing:4px; color:rgba(242,241,237,.65); text-transform:uppercase; }
+
+/* Empty state */
+.empty-state {
+  padding:3rem 1rem; text-align:center; color:var(--mid);
+  font-size:.85rem; letter-spacing:1px; line-height:1.6;
+}
+
+/* ============================================================
+   CAROUSEL — sezione per categoria, scroll-snap orizzontale
+   ============================================================ */
+.carousel-section { margin-bottom: 3rem; }
+.carousel-section:last-child { margin-bottom: 0; }
+
+.carousel-head {
+  display:flex; align-items:baseline; justify-content:space-between;
+  gap:1rem; margin-bottom:1.25rem;
+  padding-bottom:.7rem; border-bottom:1px solid rgba(0,0,0,.2);
+}
+.carousel-head-l { display:flex; align-items:baseline; gap:1rem; min-width:0; flex:1; }
+.carousel-title {
+  font-family:'IBM Plex Sans Condensed',sans-serif;
+  font-size:1.6rem; font-weight:700; letter-spacing:-.5px;
+  text-transform:uppercase; line-height:1;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+@media (min-width: 768px) { .carousel-title { font-size:2rem; } }
+.carousel-count {
+  font-size:var(--fs-micro); letter-spacing:.25em;
+  color:var(--mid); text-transform:uppercase; white-space:nowrap;
+}
+.carousel-nav { display:flex; gap:.4rem; flex-shrink:0; }
+@media (hover: none) { .carousel-nav { display:none; } }   /* mobile: solo swipe */
+.carousel-btn {
+  width:36px; height:36px; border:1px solid var(--ink);
+  background:var(--paper); color:var(--ink);
+  font-family:'IBM Plex Mono',monospace; font-size:1rem; line-height:1;
+  cursor:pointer; transition:background .2s, color .2s, opacity .2s;
+  -webkit-appearance:none; touch-action:manipulation;
+  display:flex; align-items:center; justify-content:center;
+}
+.carousel-btn:hover:not(:disabled) { background:var(--ink); color:var(--paper); }
+.carousel-btn:disabled { opacity:.25; cursor:default; }
+
+.carousel-track {
+  display:flex; gap:1.25rem;
+  overflow-x:auto; overflow-y:hidden;
+  scroll-snap-type:x mandatory;
+  scroll-behavior:smooth;
+  -webkit-overflow-scrolling:touch;
+  padding:.25rem .25rem 1rem;          /* margine per hover shadow */
+  margin:-.25rem -.25rem 0;             /* compensa il padding */
+  scrollbar-width:thin;
+  scrollbar-color:rgba(0,0,0,.25) transparent;
+}
+.carousel-track::-webkit-scrollbar { height:6px; }
+.carousel-track::-webkit-scrollbar-thumb { background:rgba(0,0,0,.25); border-radius:3px; }
+.carousel-track::-webkit-scrollbar-track { background:transparent; }
+
+.carousel-card {
+  flex:0 0 78%;
+  scroll-snap-align:start;
+  display:flex; flex-direction:column; gap:.6rem;
+  cursor:pointer; position:relative;
+  transition:transform .25s;
+  text-decoration:none; color:inherit;
+}
+@media (min-width: 480px) { .carousel-card { flex:0 0 280px; } }
+@media (min-width: 768px) { .carousel-card { flex:0 0 320px; } }
+.carousel-card:hover { transform:translateY(-3px); }
+.carousel-card--fallback { cursor:default; }
+.carousel-card--fallback:hover { transform:none; }
+.carousel-card-cover {
+  aspect-ratio:4/3; min-height:160px;
+  background:var(--blue); position:relative; overflow:hidden;
+  margin-bottom:.2rem;
+}
+.carousel-card-cover.has-cover { background-color:var(--mid-soft); background-size:cover; background-position:center; }
+.carousel-card-cover.has-cover::before { display:none; }
+.carousel-card-cover.ac-v1 { background:var(--ink); }
+.carousel-card-cover.ac-v2 { background:var(--red); }
+.carousel-card-cover-tag {
+  position:absolute; top:.6rem; left:.6rem;
+  font-size:var(--fs-micro); letter-spacing:.2em;
+  color:var(--paper); text-transform:uppercase;
+  background:var(--ink); padding:3px 7px; z-index:1;
+}
+.carousel-card-num {
+  position:absolute; top:.6rem; right:.6rem;
+  font-family:'IBM Plex Sans Condensed',sans-serif;
+  font-size:1.2rem; font-weight:700;
+  color:var(--paper); z-index:1;
+  text-shadow:0 0 8px rgba(0,0,0,.4);
+}
+.carousel-card-title {
+  font-family:'IBM Plex Sans Condensed',sans-serif;
+  font-size:1.1rem; font-weight:700; line-height:1.1;
+  letter-spacing:-.3px; text-transform:uppercase;
+  transition:color .2s;
+}
+.carousel-card:hover .carousel-card-title { color:var(--blue); }
+.carousel-card-excerpt {
+  font-size:.75rem; color:var(--mid); line-height:1.5;
+  display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical;
+  line-clamp:3; overflow:hidden;
+}
+.carousel-card-meta {
+  display:flex; justify-content:space-between;
+  font-size:var(--fs-micro); letter-spacing:.2em;
+  color:var(--mid); text-transform:uppercase;
+  padding-top:.5rem; border-top:1px solid rgba(0,0,0,.15);
+  margin-top:auto;
+}
+</style>
+</head>
+<body>
+
+<div class="loader" id="loader">
+  <div class="loader-logo">CoolDown</div>
+  <div class="loader-bar"></div>
+  <div class="loader-meta">Articoli · F1 System 2026</div>
+</div>
+
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+
+<nav>
+  <a href="index.html" class="nav-logo">Cool<span>Down</span></a>
+  <ul class="nav-links">
+    <li><a href="index.html">Hero</a></li>
+    <li><a href="articoli.html" class="is-current">Articoli</a></li>
+    <li><a href="feed.html">Feed</a></li>
+    <li><a href="statistiche.html">Stats</a></li>
+    <li><a href="calendario.html">Calendario</a></li>
+    <li><a href="classifica.html">Classifica</a></li>
+  </ul>
+  <button class="nav-toggle" id="navToggle" aria-label="Menu"><span></span><span></span><span></span></button>
+</nav>
+<div class="nav-drawer" id="navDrawer">
+  <a href="index.html">Hero</a>
+  <a href="articoli.html" class="is-current">Articoli</a>
+  <a href="feed.html">Feed</a>
+  <a href="statistiche.html">Stats</a>
+  <a href="calendario.html">Calendario</a>
+  <a href="classifica.html">Classifica</a>
+</div>
+
+<section class="subhero">
+  <div class="crumb"><a href="index.html">Home</a><span class="sep">/</span><span class="current">Articoli</span></div>
+  <h1 class="subhero-title">Articoli</h1>
+  <span class="subhero-sub">Analisi, storia, tech e cultura — <em>tutto</em> quello che pubblichiamo, ordinato per categoria.</span>
+</section>
+
+<section style="background:var(--paper); padding-top:3rem;">
+  <div class="articles-meta-row">
+    <span id="resultsCounter">Caricamento…</span>
+    <span id="sourceLabel">Edition 01</span>
+  </div>
+
+  <!-- Caroselli per categoria -->
+  <div id="categoriesArea">
+    <div class="empty-state" id="emptyState">Caricamento articoli…</div>
+  </div>
+</section>
+
+<footer>
+  <div class="foot-top">
+    <div>
+      <div class="foot-brand">Cool<span>Down</span></div>
+      <div class="foot-brand-sub">Italian F1 Magazine · est. 2025</div>
+    </div>
+    <div class="foot-col">
+      <h4>// Sezioni</h4>
+      <ul>
+        <li><a href="articoli.html">Articoli</a></li>
+        <li><a href="calendario.html">Calendario</a></li>
+        <li><a href="classifica.html">Classifica</a></li>
+    <li><a href="statistiche.html">Stats</a></li>
+        <li><a href="feed.html">Feed</a></li>
+      </ul>
+    </div>
+    <div class="foot-col">
+      <h4>// Social</h4>
+      <ul>
+        <li><a href="#" target="_blank">Instagram</a></li>
+        <li><a href="#" target="_blank">TikTok</a></li>
+        <li><a href="#" target="_blank">X / Twitter</a></li>
+        <li><a href="#" target="_blank">YouTube</a></li>
+      </ul>
+    </div>
+    <div class="foot-col">
+      <h4>// Info</h4>
+      <ul>
+        <li><a href="#">Chi siamo</a></li>
+        <li><a href="#">Contatti</a></li>
+        <li><a href="#">Privacy</a></li>
+        <li><a href="#">Termini</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="foot-bottom">
+    <span>© 2026 CoolDown · Tutti i diritti riservati</span>
+    <span>Dati: Jolpica-F1 · OpenF1</span>
+  </div>
+</footer>
+
+<script>
+/* ===== LOADER ===== */
+function hideLoader() {
+  const l = document.getElementById('loader');
+  if (!l) return;
+  l.classList.add('gone');
+  setTimeout(() => { l.style.display = 'none'; }, 600);
+}
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', () => setTimeout(hideLoader, 400));
+else setTimeout(hideLoader, 200);
+window.addEventListener('load', () => setTimeout(hideLoader, 100));
+setTimeout(hideLoader, 1200);
+
+/* ===== CURSOR ===== */
+(() => {
+  if (matchMedia('(hover: none)').matches) return;
+  const c = document.getElementById('cursor');
+  const r = document.getElementById('cursorRing');
+  let mx = 0, my = 0, rx = 0, ry = 0;
+
+  const CURSOR_COLORS = {
+    blue:  { dot: '#F2F1ED', ring: 'rgba(242,241,237,0.7)' },
+    dark:  { dot: '#0033FF', ring: 'rgba(0,51,255,0.8)' },
+    light: { dot: '#0033FF', ring: 'rgba(0,51,255,0.6)' },
+  };
+  function getBgType(clientY) {
+    const y = window.scrollY + clientY;
+    for (const el of document.querySelectorAll('section, footer')) {
+      if (y >= el.offsetTop && y < el.offsetTop + el.offsetHeight) {
+        if (el.tagName === 'FOOTER') return 'dark';
+        if (el.classList.contains('hero') || el.classList.contains('subhero')) return 'blue';
+        if (el.classList.contains('newsletter')) return 'dark';
+        return 'light';
+      }
+    }
+    return 'light';
+  }
+  let lastBg = null;
+  function updateCursorColor(clientY) {
+    const type = getBgType(clientY);
+    if (type === lastBg) return;
+    lastBg = type;
+    const col = CURSOR_COLORS[type];
+    c.style.background = col.dot;
+    r.style.borderColor = col.ring;
+  }
+
+  document.addEventListener('mousemove', e => {
+    mx = e.clientX; my = e.clientY;
+    c.style.transform = `translate(${mx}px, ${my}px) translate(-50%, -50%)`;
+    updateCursorColor(my);
+  });
+  function tick() {
+    rx += (mx - rx) * 0.18; ry += (my - ry) * 0.18;
+    r.style.transform = `translate(${rx}px, ${ry}px) translate(-50%, -50%)`;
+    requestAnimationFrame(tick);
+  }
+  tick();
+  window.bindCursorHover = function(root) {
+    (root || document).querySelectorAll('a, button, .feat-card, .carousel-card, .carousel-btn').forEach(el => {
+      if (el.dataset.cursorBound) return;
+      el.dataset.cursorBound = '1';
+      el.addEventListener('mouseenter', () => c.classList.add('hover'));
+      el.addEventListener('mouseleave', () => c.classList.remove('hover'));
+    });
+  };
+  window.bindCursorHover();
+})();
+
+/* ===== MOBILE NAV ===== */
+(() => {
+  const btn = document.getElementById('navToggle');
+  const drawer = document.getElementById('navDrawer');
+  btn?.addEventListener('click', () => drawer.classList.toggle('open'));
+  drawer.querySelectorAll('a').forEach(a => a.addEventListener('click', () => drawer.classList.remove('open')));
+})();
+
+/* ===== HELPERS ===== */
+function parseFrontmatter(md) {
+  const m = md.match(/^---\n([\s\S]*?)\n---\n?([\s\S]*)$/);
+  if (!m) return null;
+  const fm = {};
+  m[1].split('\n').forEach(line => {
+    const i = line.indexOf(':');
+    if (i < 0) return;
+    const k = line.slice(0, i).trim();
+    const v = line.slice(i + 1).trim().replace(/^["']|["']$/g, '');
+    if (k) fm[k] = v;
+  });
+  fm.body = m[2].trim();
+  return fm;
+}
+function escapeHTML(s) {
+  return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function formatDate(iso) {
+  const d = new Date(iso);
+  if (isNaN(d)) return escapeHTML(iso);
+  return `${String(d.getDate()).padStart(2,'0')}.${String(d.getMonth()+1).padStart(2,'0')}.${String(d.getFullYear()).slice(-2)}`;
+}
+/* ===== LOAD ARTICLES ===== */
+const cache = {
+  get(k, ttl=30) { try { const r = localStorage.getItem('cd_'+k); if (!r) return null; const {t,v}=JSON.parse(r); if (Date.now()-t > ttl*60000) return null; return v; } catch { return null; } },
+  set(k, v) { try { localStorage.setItem('cd_'+k, JSON.stringify({t:Date.now(),v})); } catch {} }
+};
+async function fetchJSON(url, ttl=30) {
+  const c = cache.get(url, ttl); if (c) return c;
+  try {
+    const timeout = new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), 4000));
+    const r = await Promise.race([fetch(url), timeout]);
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const d = await r.json();
+    cache.set(url, d);
+    return d;
+  } catch (e) { console.warn('Fetch failed:', url, e.message); return null; }
+}
+
+let ALL_ARTICLES = [];
+
+
+/* ============================================================
+   FALLBACK ARTICLES — Si usano se il CMS è vuoto/offline.
+   2 articoli per ognuna delle 7 categorie (14 totali).
+   ⚠️ Se modifichi questi articoli, modifica anche la stessa
+   costante in index.html (è duplicata per resilienza).
+   ============================================================ */
+const FALLBACK_ARTICLES = [
+  { title: "Perché Ferrari ha cambiato passo a Imola", tag: "Analisi", date: "2026-05-12", read: "6 min", variant: "ac-v0",
+    excerpt: "Tre indizi tecnici dal weekend di Imola che spiegano il rilancio del Cavallino: aero pack, mappature ERS e gestione gomme.",
+    body: `Il rilancio Ferrari inizia dalla pancia. Le pance laterali della SF-26 mostrate a Imola sono più aggressive nella zona di estrazione: il flusso che attraversa l'undercut viene canalizzato in modo più diretto verso l'effetto suolo, sacrificando qualcosa in alta velocità per guadagnare nelle curve di media percorrenza.
+
+## Mappature ERS
+
+Il secondo indizio è meno visibile. Le radio di Leclerc durante le qualifiche hanno tradito un cambio di approccio: ricariche più aggressive in frenata, scariche concentrate sui tratti dove il motore Ferrari soffre meno il drag.
+
+## La vera notizia: le gomme
+
+L'aspetto più interessante riguarda la finestra di lavoro. Per la prima volta in tre anni, Ferrari è riuscita a far funzionare le hard nella seconda metà del run senza compromettere la prima. Una vittoria che vale più del podio di Imola: vale tutto il resto della stagione.` },
+
+  { title: "Il dilemma di Charles Leclerc", tag: "Long-form", date: "2026-05-10", read: "14 min", variant: "ac-v1",
+    excerpt: "Quattro anni di Ferrari, due opportunità mancate e una domanda: vincere a Maranello è ancora possibile? Reportage dal paddock.",
+    body: `Chi parla con Charles oggi descrive un pilota diverso. Più freddo, più chirurgico, meno emotivo nelle radio. La maturità di chi ha perso troppe volte per credere ancora alle promesse.
+
+## Il peso del cognome
+
+A Maranello, il nome Leclerc pesa diversamente da quello degli altri piloti. Charles non è arrivato in Ferrari per caso: è figlio dell'Academy, è il prodotto di anni di investimenti, è il pilota che doveva riportare il titolo a casa. Ed è qui da quando aveva 21 anni.
+
+## Il 2022 che non torna
+
+Il 2022 è stato l'anno in cui la storia poteva cambiare. Il F1-75 era veloce, Charles era veloce, e per nove gare Ferrari ha guidato il mondiale. Poi: strategia di Monaco, motore di Baku, errore di Imola. Tre eventi in tre mesi che hanno definito una carriera.
+
+## Cosa cambia adesso
+
+Il contratto fino al 2028 è un voto di fiducia. Ma anche un ultimatum. Se il 2026 non sarà l'anno buono, sarà difficile chiedergli un'altra stagione di pazienza. La finestra si stringe, e Charles lo sa.` },
+
+  { title: "Aero 2026: il regolamento spiegato", tag: "Tech", date: "2026-05-06", read: "11 min", variant: "ac-v2",
+    excerpt: "Una guida completa al nuovo regolamento tecnico: ali attive, fondi rivisti, riduzione del drag e gestione del DRS.",
+    body: `Il regolamento 2026 è la riforma più radicale dal 2014. Cambia tutto: motori, telai, aerodinamica. Vediamo come.
+
+## Ali attive
+
+La novità più visibile sono le ali mobili. Sia anteriore che posteriore avranno una modalità "low-drag" attivabile dal pilota in rettilineo, e una modalità "high-downforce" in curva. Il DRS classico sparisce: ora il sistema è disponibile sempre, gestito automaticamente.
+
+## Fondi rivisti
+
+L'effetto suolo introdotto nel 2022 viene ridimensionato. I tunnel Venturi sono meno aggressivi, il fondo è rialzato di 30 mm, e l'altezza minima da terra viene controllata da sensori. Obiettivo: ridurre porpoising senza perdere lo spirito del regolamento.
+
+## Motori 50/50
+
+Il punto più discusso: la suddivisione di potenza tra termico ed elettrico passa al 50/50. 470 kW da MGU-K, 470 kW dal V6. Sparisce l'MGU-H. Risultato: motori più semplici, più costosi nei consumi, ma più rilevanti per la transizione elettrica dell'industria.` },
+
+  { title: "F1 e cinema: i 10 film essenziali", tag: "Cultura", date: "2026-05-03", read: "9 min", variant: "ac-v0",
+    excerpt: "Da Grand Prix (1966) a Senna (2010), passando per Rush e Le Mans '66. La lista definitiva per appassionati e curiosi.",
+    body: `La F1 non ha mai trovato un grande film di finzione. Ha però prodotto alcuni dei migliori documentari sportivi della storia. Ecco i 10 da vedere.
+
+## I capolavori
+
+**Senna** (2010) di Asif Kapadia. Probabilmente il miglior documentario sportivo mai realizzato. Senza voce narrante, solo immagini d'archivio e interviste. Imperdibile.
+
+**Grand Prix** (1966) di John Frankenheimer. Il primo grande film di fiction. Le riprese a bordo macchina sono ancora oggi spettacolari.
+
+**Rush** (2013) di Ron Howard. La rivalità Hunt-Lauda raccontata bene. Niki ha approvato.
+
+## I sottovalutati
+
+**Steve McQueen: Le Mans** (2015). Sulla folle produzione di "Le Mans" (1971). McQueen voleva il film più realistico mai fatto. Quasi gli costò la carriera.
+
+**1: Life on the Limit** (2013). Sulla sicurezza in F1 dagli anni '60 a oggi. Drammatico ma necessario.
+
+## Da scoprire
+
+**Williams** (2017), **McLaren** (2017), **Schumacher** (2021), **Drive to Survive** (2019-presente). Ognuno racconta un pezzo di storia diverso.` },
+
+  { title: "Contro i venerdì di prove libere", tag: "Opinione", date: "2026-04-29", read: "5 min", variant: "ac-v1",
+    excerpt: "Perché eliminare FP1 e ridurre FP2 farebbe bene allo spettacolo, ai team e soprattutto agli spettatori in autodromo.",
+    body: `Il venerdì di un weekend di F1 è morto. Tre ore di prove libere in cui i team girano poco, fanno test aerodinamici noiosi, e nessuno spinge mai. Lo spettatore in tribuna paga 80 euro per vedere monoposto che escono dai box ogni 20 minuti.
+
+## Il problema
+
+Le FP1 e FP2 servono ai team per validare i dati delle simulazioni. Nel 2026, con simulatori che riproducono le piste al millimetro, gran parte di quel lavoro si fa già il mercoledì notte in fabbrica. Le sessioni del venerdì sono ridondanti.
+
+## La proposta
+
+Cancellare FP1. Tenere una sola sessione il venerdì pomeriggio, di 60 minuti. Anticipare le qualifiche al sabato mattina. Avere una sprint o una sessione esibizione il sabato pomeriggio. Domenica: gara.
+
+Risultato: meno costi per i team, più gara per gli spettatori, più contenuto narrativo per la TV. Tutti vincono. Tranne forse gli ingegneri, che dovrebbero finalmente fidarsi dei loro modelli.` },
+
+  { title: "Tutti i sorpassi del 2026 in un grafico", tag: "Data", date: "2026-04-26", read: "7 min", variant: "ac-v2",
+    excerpt: "Analisi dei dati di sorpasso gara per gara: chi sorpassa di più, su quali circuiti, e perché Monaco resta un'eccezione.",
+    body: `Nelle prime quattro gare del 2026 ci sono stati 247 sorpassi tracciati ufficialmente. Quasi 30 in più rispetto allo stesso periodo del 2025. Vediamo dove e perché.
+
+## Il top: Cina
+
+Il GP di Shanghai ha visto 78 sorpassi in gara, record dell'era ground-effect. Le ali attive introdotte nel 2026 stanno funzionando: i piloti possono seguire da vicino più a lungo, e gli scatti DRS sui rettilinei sono ancora più decisivi.
+
+## Il flop prevedibile: Monaco
+
+Solo 12 sorpassi in tutta la gara di Monaco. Niente di nuovo. La pista resta stretta, le macchine sono ancora troppo grandi (anche se nel 2026 sono leggermente più corte), e l'unico vero punto di sorpasso resta la chicane del porto.
+
+## I piloti che sorpassano di più
+
+In testa Verstappen (38 sorpassi totali), seguito da Norris (31) e Antonelli (28). Il dato sorprendente: Antonelli al primo anno completo è già nei primi tre. Talento puro o macchina migliore? Verosimilmente entrambe.` },
+
+  { title: "McLaren e la gestione gomme nel 2026", tag: "Analisi", date: "2026-04-22", read: "8 min", variant: "ac-v0",
+    excerpt: "Norris e Piastri stanno dominando la classifica grazie a un vantaggio invisibile: il degrado gomme più basso del campionato.",
+    body: `La MCL39 ha un segreto. Non è la velocità in qualifica — lì McLaren è seconda dietro Red Bull. Non è il motore — Mercedes-AMG resta una potenza media. Il vantaggio è il consumo gomme.
+
+## I numeri
+
+Nelle prime quattro gare, le McLaren hanno fermato in pit-lane in media 1,2 volte. La media degli altri top team è 1,8. Tradotto: McLaren fa meno soste, perde meno tempo, esce davanti.
+
+## Perché succede
+
+L'origine è nella sospensione anteriore. La geometria sviluppata da Sanchez e Stella riduce lo scorrimento laterale del pneumatico nelle curve veloci di media intensità. Il risultato è meno temperatura nei piazzali, meno graining, meno blistering.
+
+## Cosa rischiano
+
+Il problema arriverà su circuiti stop-and-go come Baku o Singapore. Lì il vantaggio scompare. E in qualifica, la stessa sospensione non aiuta su un giro secco. Per ora però le gare le vincono ugualmente.` },
+
+  { title: "Senna a Monaco 1988: l'ultima curva", tag: "Storia", date: "2026-04-15", read: "12 min", variant: "ac-v1",
+    excerpt: "Il giro più veloce mai visto a Monaco. Cosa successe davvero dietro le radio rosse di Honda quel sabato pomeriggio.",
+    body: `Il 14 maggio 1988, alle 14:47, Ayrton Senna girò in 1:23.998. Suo compagno di squadra Alain Prost segnò 1:25.425. Un secondo e mezzo di distacco. Sulla stessa macchina, sulla stessa pista.
+
+## La trance
+
+Senna lo raccontò molti anni dopo a uno psicologo dello sport. Disse di aver perso la sensazione di guida, di non sentire più il volante, di vedersi guidare dall'alto. Una dissociazione totale. Quando arrivò ai box, era spaventato. Non capiva cosa fosse successo.
+
+## Cosa diceva la telemetria
+
+Honda aveva installato sulla MP4/4 un sistema di telemetria primordiale. I dati di quel giro mostrano qualcosa di anomalo: nelle curve veloci, le traiettorie sono identiche giro dopo giro, al centimetro. In Anthony Noghes, Senna toccò la traiettoria perfetta per nove giri di fila. Ai limiti dell'umano.
+
+## Il fallimento del giorno dopo
+
+Domenica, Senna era in testa con 50 secondi di vantaggio. A 12 giri dalla fine, lo schianto a Portier. Errore di concentrazione, dissero. Probabilmente, il prezzo della trance del sabato.` },
+
+  { title: "Il segreto del DRS attivo: come funziona davvero", tag: "Tech", date: "2026-04-08", read: "8 min", variant: "ac-v2",
+    excerpt: "Le ali mobili 2026 spiegate senza fronzoli: cosa cambia rispetto al DRS classico, perché favorisce i sorpassi, e i limiti.",
+    body: `Il DRS che abbiamo conosciuto dal 2011 al 2025 è morto. Al suo posto: un sistema completamente diverso, che il pubblico fatica ancora a capire.
+
+## Come funziona
+
+Il pilota ha ora due modalità aerodinamiche attivabili in qualsiasi punto della pista: "low-drag" (ali quasi piatte) e "high-downforce" (ali in posizione standard). Il passaggio è gestito da un pulsante al volante, ma con un sistema di sicurezza: il computer impedisce il low-drag in curva.
+
+## Il vantaggio reale
+
+Rispetto al DRS classico, il pilota può scegliere quando guadagnare velocità. Sui rettilinei lunghi: low-drag costante. Su pista cittadina: solo nelle zone tra una curva e l'altra. Questo cambia completamente la strategia di guida e di sorpasso.
+
+## Il limite politico
+
+Il sistema però non è completamente "aperto". La FIA ha imposto un budget di attivazioni per gara — 25 cicli per evitare che diventi un'arma costante. Una scelta strana, che limita il potenziale del regolamento. Vedremo se nel 2027 cadrà.` },
+
+  { title: "1976: l'anno in cui Niki Lauda tornò dalla morte", tag: "Storia", date: "2026-04-01", read: "13 min", variant: "ac-v0",
+    excerpt: "Quarantadue giorni dopo l'incidente al Nürburgring, Lauda era a Monza in macchina. Una delle storie più impossibili dello sport.",
+    body: `Il 1° agosto 1976, Niki Lauda morì per due minuti al Nürburgring. La sua Ferrari si era schiantata contro il guardrail alla curva Bergwerk, prendendo fuoco. I piloti dietro — Lunger, Edwards, Ertl — lo tirarono fuori. Aveva ustioni di terzo grado su volto, mani e polmoni.
+
+## Il coma
+
+In ospedale a Mannheim gli somministrarono l'estrema unzione. I medici dissero alla moglie Marlene di prepararsi al peggio. Lauda era cosciente ma non riusciva a parlare. Per due settimane, l'unico modo di comunicare era stringere la mano dell'infermiera.
+
+## Il ritorno impossibile
+
+Quarantadue giorni dopo, Lauda era al Gran Premio d'Italia. Aveva ancora le bende sulla testa, sangue che colava dalle ferite non rimarginate, ma corse. Arrivò quarto. James Hunt, che gli stava dietro nel mondiale, lo definì "il gesto più coraggioso che abbia mai visto in un atleta".
+
+## Il sacrificio
+
+L'ultima gara fu in Giappone, sotto un diluvio universale. Lauda si ritirò dopo due giri. "Non rischio la vita per un secondo titolo che posso vincere l'anno dopo", disse a Enzo Ferrari. Hunt vinse il mondiale per un punto. Lauda lo vinse nel 1977. Da solo.` },
+
+  { title: "La playlist del paddock: cosa ascoltano i piloti", tag: "Cultura", date: "2026-03-25", read: "5 min", variant: "ac-v1",
+    excerpt: "Da Verstappen che ascolta techno olandese a Hamilton in studio con i produttori. Le musiche dei piloti come finestra sulla loro testa.",
+    body: `Le ore prima del via sono sacre. Ogni pilota ha la sua routine, e in quella routine c'è quasi sempre della musica. Cosa ascoltano, e perché.
+
+## Verstappen, techno e adrenalina
+
+Max è ossessionato dalla scena hardcore olandese. Angerfist, Endymion, basi a 180 BPM. Quando arrivò in F1 lo prendevano in giro, ora i suoi gusti sono diventati famosi. Dice che lo aiuta a "spegnere il cervello e accenderlo solo nel momento giusto".
+
+## Hamilton, produttore mancato
+
+Lewis è l'unico pilota che ha pubblicato una canzone (con Christina Aguilera, 2018). Ha uno studio di registrazione a casa. Nel paddock indossa cuffie da DJ. La sua playlist pre-gara include sempre Bob Marley e Stevie Wonder.
+
+## Antonelli, il classicista
+
+Sorpresa: Kimi Antonelli, 19 anni, ascolta solo musica classica prima di salire in macchina. Beethoven, soprattutto. Dice che lo "calma la mente e gli mette ordine". Curioso per un teenager.
+
+## La regola di Leclerc
+
+Charles non ascolta nulla. Silenzio totale per 30 minuti prima della gara. "Devo sentire la macchina, non posso permettermi distrazioni". Romantico come tutto in lui.` },
+
+  { title: "Il calendario a 24 gare ucciderà i piloti?", tag: "Opinione", date: "2026-03-18", read: "6 min", variant: "ac-v2",
+    excerpt: "Dal 2026 sono 24 round in un'unica stagione. È sostenibile fisicamente e mentalmente, o stiamo spingendo gli atleti oltre il limite?",
+    body: `Il calendario 2026 prevede 24 Gran Premi, sei sprint, e una pausa estiva di 28 giorni. Il resto è viaggi, ore di volo, simulazioni, debrief. Stiamo costruendo una stagione disumana?
+
+## I numeri reali
+
+Un pilota di F1 nel 2026 passerà circa 215 giorni all'anno fuori casa. Coprirà 280.000 km in aereo. Vivrà 14 cambi di fuso orario importanti. Avrà 7 settimane di pausa estiva, di cui 4 di stop totale imposto dalla FIA.
+
+## Cosa dicono i piloti
+
+Hamilton ne parla apertamente da anni. Verstappen ha detto che a 30 anni si ritirerà se il calendario continuerà a crescere. Anche Norris, 26 anni, ammette che la stanchezza accumulata gli fa già paura.
+
+## La proposta sensata
+
+Non è chiedere meno gare. Il business non lo permette. È chiedere un sistema di rotazione: ogni pilota può saltare 2 gare a stagione, sostituito dal suo terzo pilota. I tifosi vedono comunque la macchina del team che amano. I piloti riposano. Sembra logico. La FIA non ci pensa.` },
+
+  { title: "Affidabilità motori 2026: chi rischia di più", tag: "Data", date: "2026-03-10", read: "8 min", variant: "ac-v0",
+    excerpt: "Con i nuovi propulsori 50/50, l'analisi delle ore al banco e dei primi guasti reali ci dice già chi avrà problemi di affidabilità.",
+    body: `I motori 2026 sono nuovi. Davvero nuovi. Architettura V6 1.6 turbo + MGU-K potenziato + no MGU-H. Quattro nuovi fornitori, cinque generazioni di prototipi. L'affidabilità sarà il vero tema della stagione.
+
+## I dati di pre-stagione
+
+Mercedes ha accumulato 28.000 km al banco dinamometrico. Ferrari 24.000. Honda 22.000. Audi (al debutto) solo 14.000. Il motore Audi è il più innovativo e il meno testato — combinazione potenzialmente esplosiva.
+
+## I primi guasti
+
+Nelle prime quattro gare, già visti: tre rotture meccaniche Audi (cliente Sauber), due elettroniche Mercedes, una termica Honda. Ferrari per ora intatto. Significativo: tutti i guasti sui motori più stressati in qualifica, suggerendo problemi di gestione termica.
+
+## La proiezione
+
+Allocazione 2026: 3 motori per pilota per 24 gare. Significa che ogni motore deve coprire 8 gare. È stretto. Audi probabilmente non ce la farà — già si parla di penalità multiple in seconda metà di stagione. Cadillac, al debutto nel 2027, ha rinviato di un anno proprio per questo.` },
+
+  { title: "Come Adrian Newey ha cambiato la F1", tag: "Long-form", date: "2026-03-02", read: "22 min", variant: "ac-v1",
+    excerpt: "Quarant'anni di vetture vincenti, tre team trasformati, dodici titoli costruttori. La carriera del designer più importante della storia.",
+    body: `Quando Adrian Newey annunciò di lasciare Red Bull nel 2024, lo sport tremò. Non era solo la fine di un'epoca: era il vero termine di un ciclo iniziato nel 1986, quando un ingegnere ventiseienne disegnò il suo primo telaio per March.
+
+## L'inizio: March e Williams
+
+Newey non è un teorico. Disegna a matita, su carta, e ha sempre rifiutato i software CAD per il primo concept. La sua FW14 (Williams 1991) fu la prima monoposto al mondo dominata dall'aerodinamica come priorità assoluta. Tutto il resto seguiva.
+
+## McLaren e il salto
+
+Negli anni 2000 in McLaren, Newey introdusse l'idea che la sospensione è un'estensione dell'aerodinamica. La MP4-20 del 2005 era una macchina rivoluzionaria, troppo fragile per vincere il titolo ma capace di pole position seriali.
+
+## Red Bull: il dominio
+
+Dal 2010 al 2013, quattro titoli consecutivi con Vettel. Poi il rinascimento del 2022 con Verstappen. La sua RB18 fu il prodotto della migliore interpretazione del regolamento ground-effect. Nessuno capì l'estrazione del flusso sotto la macchina come la sua squadra.
+
+## L'eredità
+
+Newey oggi è in Aston Martin. La AMR26 ha la sua firma — pance estreme, sospensione anteriore push-rod, fondo a "spina di pesce". Funzionerà? Probabilmente sì, perché funziona sempre. Cambia squadra, cambia regolamento, ma la fisica resta la stessa. E Newey la parla come pochi.` }
+];
+
+/* ============================================================
+   CAROUSEL RENDERING
+   ============================================================ */
+function renderCarouselCard(a, idx, isFallback) {
+  let cover;
+  if (a.cover) {
+    const safeUrl = String(a.cover).replace(/['"\\<>]/g, '');
+    cover = `<div class="carousel-card-cover has-cover" style="background-image:url('${safeUrl}')">
+      <span class="carousel-card-cover-tag">${escapeHTML(a.tag || '—')}</span>
+      <span class="carousel-card-num">#${String(idx + 1).padStart(2,'0')}</span>
+    </div>`;
+  } else {
+    const variant = ['ac-v0','ac-v1','ac-v2'].includes(a.variant) ? a.variant : 'ac-v0';
+    cover = `<div class="carousel-card-cover ${variant}">
+      <span class="carousel-card-cover-tag">${escapeHTML(a.tag || '—')}</span>
+      <span class="carousel-card-num">#${String(idx + 1).padStart(2,'0')}</span>
+    </div>`;
+  }
+  const inner = `${cover}
+      <h3 class="carousel-card-title">${escapeHTML(a.title)}</h3>
+      <p class="carousel-card-excerpt">${escapeHTML(a.excerpt)}</p>
+      <div class="carousel-card-meta"><span>${formatDate(a.date)}</span><span>${escapeHTML(a.read || '')}</span></div>`;
+  if (!isFallback && a.slug) {
+    return `<a class="carousel-card" href="articoli/${encodeURIComponent(a.slug)}.html">${inner}</a>`;
+  }
+  return `<div class="carousel-card carousel-card--fallback" aria-disabled="true">${inner}</div>`;
+}
+
+function renderCarouselSection(tag, articles, isFallback) {
+  // Ordinati per data, più recente per primo
+  const sorted = [...articles].sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+  return `
+    <div class="carousel-section" data-tag="${escapeHTML(tag)}">
+      <div class="carousel-head">
+        <div class="carousel-head-l">
+          <h2 class="carousel-title">${escapeHTML(tag)}</h2>
+          <span class="carousel-count">${sorted.length} articol${sorted.length === 1 ? 'o' : 'i'}</span>
+        </div>
+        <div class="carousel-nav">
+          <button class="carousel-btn carousel-prev" aria-label="Scorri a sinistra">←</button>
+          <button class="carousel-btn carousel-next" aria-label="Scorri a destra">→</button>
+        </div>
+      </div>
+      <div class="carousel-track">
+        ${sorted.map((a, i) => renderCarouselCard(a, i, isFallback)).join('')}
+      </div>
+    </div>
+  `;
+}
+
+function bindCarouselNav(root) {
+  (root || document).querySelectorAll('.carousel-section').forEach(section => {
+    const track = section.querySelector('.carousel-track');
+    const prev = section.querySelector('.carousel-prev');
+    const next = section.querySelector('.carousel-next');
+    if (!track || !prev || !next) return;
+
+    const getStep = () => {
+      const card = track.querySelector('.carousel-card');
+      if (!card) return 320;
+      const gap = parseFloat(getComputedStyle(track).columnGap || getComputedStyle(track).gap || '20') || 20;
+      return card.getBoundingClientRect().width + gap;
+    };
+    const updateButtons = () => {
+      const max = track.scrollWidth - track.clientWidth - 2;
+      prev.disabled = track.scrollLeft <= 2;
+      next.disabled = track.scrollLeft >= max;
+    };
+    prev.addEventListener('click', () => track.scrollBy({ left: -getStep(), behavior: 'smooth' }));
+    next.addEventListener('click', () => track.scrollBy({ left: getStep(), behavior: 'smooth' }));
+    track.addEventListener('scroll', updateButtons, { passive: true });
+    // initial state — defer to next frame for accurate measurement
+    requestAnimationFrame(updateButtons);
+    // re-check on resize
+    window.addEventListener('resize', updateButtons);
+  });
+}
+
+let IS_FALLBACK = true;
+
+function applyFilter() {
+  const counter = document.getElementById('resultsCounter');
+  const catArea = document.getElementById('categoriesArea');
+  const empty = document.getElementById('emptyState');
+
+  if (!ALL_ARTICLES.length) {
+    catArea.innerHTML = '<div class="empty-state">Nessun articolo disponibile.</div>';
+    counter.textContent = '0 articoli';
+    return;
+  }
+
+  counter.textContent = `${ALL_ARTICLES.length} articol${ALL_ARTICLES.length === 1 ? 'o' : 'i'}`;
+
+  // Raggruppa per categoria, ordine fisso
+  const groups = {};
+  ALL_ARTICLES.forEach(a => {
+    const t = a.tag || 'Altro';
+    if (!groups[t]) groups[t] = [];
+    groups[t].push(a);
+  });
+  const preferredOrder = ['Analisi', 'Tech', 'Storia', 'Cultura', 'Opinione', 'Data', 'Long-form'];
+  const orderedTags = [
+    ...preferredOrder.filter(t => groups[t]),
+    ...Object.keys(groups).filter(t => !preferredOrder.includes(t)).sort()
+  ];
+  catArea.innerHTML = orderedTags.map(tag => renderCarouselSection(tag, groups[tag], IS_FALLBACK)).join('');
+
+  if (empty) empty.remove();
+  if (window.bindCursorHover) window.bindCursorHover(catArea);
+  bindCarouselNav(catArea);
+}
+
+function slugFromFilename(name) {
+  return String(name)
+    .replace(/\.md$/, '')
+    .replace(/^\d{4}-\d{2}-\d{2}-/, '')
+    .toLowerCase()
+    .replace(/[àáâãä]/g, 'a').replace(/[èéêë]/g, 'e')
+    .replace(/[ìíîï]/g, 'i').replace(/[òóôõö]/g, 'o')
+    .replace(/[ùúûü]/g, 'u').replace(/[ç]/g, 'c').replace(/[ñ]/g, 'n')
+    .replace(/[^a-z0-9-]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 80);
+}
+
+function renderAll(articles, fromFallback) {
+  ALL_ARTICLES = articles;
+  IS_FALLBACK = !!fromFallback;
+  const lbl = document.getElementById('sourceLabel');
+  if (lbl) lbl.textContent = fromFallback ? 'Anteprima · Edition 01' : 'Edition 01';
+  applyFilter();
+}
+
+async function loadArticles() {
+  // 1. SUBITO: mostra fallback (visibilità immediata)
+  renderAll(FALLBACK_ARTICLES, true);
+
+  // 2. ASYNC: prova CMS e sostituisci se ha articoli reali
+  const REPO = 'diamantifugazi/CoolDown.f1';
+  try {
+    const list = await fetchJSON(`https://api.github.com/repos/${REPO}/contents/content/articles`, 1);
+    if (!Array.isArray(list) || !list.length) return;
+    const mdFiles = list
+      .filter(f => f.name.endsWith('.md'))
+      .sort((a, b) => b.name.localeCompare(a.name));
+    if (!mdFiles.length) return;
+    const articles = (await Promise.all(mdFiles.map(async (f) => {
+      try {
+        const r = await fetch(f.download_url);
+        if (!r.ok) return null;
+        const parsed = parseFrontmatter(await r.text());
+        if (parsed) parsed.slug = slugFromFilename(f.name);
+        return parsed;
+      } catch { return null; }
+    }))).filter(Boolean);
+    if (articles.length) {
+      renderAll(articles, false);
+    }
+  } catch { /* CMS non raggiungibile → resta fallback */ }
+}
+loadArticles();
+</script>
+</body>
+</html>

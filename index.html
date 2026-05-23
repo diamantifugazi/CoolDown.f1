@@ -1,0 +1,2915 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta name="theme-color" content="#0033FF" />
+<meta name="description" content="CoolDown — la pagina Instagram italiana che racconta la Formula 1. Calendario, classifica, telemetria, storie." />
+<title>CoolDown</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<!-- Font non-bloccante: su file:// il <link> sincrono blocca il rendering su iOS -->
+<link rel="preload" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600;700&family=IBM+Plex+Sans+Condensed:wght@400;500;600;700&family=IBM+Plex+Serif:ital,wght@1,400&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'" />
+<noscript><link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600;700&family=IBM+Plex+Sans+Condensed:wght@400;500;600;700&family=IBM+Plex+Serif:ital,wght@1,400&display=swap" rel="stylesheet" /></noscript>
+
+<style>
+/* ============================================================
+   COOLDOWN · F1 — HALFTONE SYSTEM
+   Stile: editorial-brutalist · blu elettrico · monospace
+   Mobile-first, scalato fino a desktop large
+   ============================================================ */
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+  /* NON mettere overflow su html o body su iOS Safari:
+     rompe position:fixed (nav, loader, grain) che smette di essere fisso al viewport */
+}
+
+:root {
+  /* Palette — blu elettrico OUTPUMP-style */
+  --blue: #0033FF;
+  --blue-dark: #0020B8;
+  --blue-deep: #001580;
+  --blue-glow: #2D2DFF;
+  --paper: #F2F1ED;
+  --paper-warm: #EBEAE4;
+  --ink: #0A0A0A;
+  --ink-soft: #1A1A1A;
+  --mid: #555;
+  --mid-soft: #999;
+  --red: #FF2200;
+  --green: #00B86B;
+  --amber: #FFB800;
+
+  /* Type scale */
+  --fs-micro: 0.5rem;
+  --fs-tiny: 0.6rem;
+  --fs-mono: 0.72rem;
+  --fs-body: 0.85rem;
+  --fs-h: clamp(2rem, 6vw, 4.5rem);
+  --fs-mega: clamp(2.4rem, 14vw, 14rem); /* ridotto: evita overflow su mobile */
+
+  /* Spacing */
+  --pad-x: 1.25rem;
+  --pad-y: 2.5rem;
+  --gutter: 1rem;
+
+  /* Halftone */
+  --dot: 3px;
+  --grid: 14px;
+}
+
+@media (min-width: 768px) {
+  :root { --pad-x: 2.5rem; --pad-y: 3.5rem; --gutter: 1.5rem; --grid: 18px; }
+}
+@media (min-width: 1200px) {
+  :root { --pad-x: 4rem; --pad-y: 4.5rem; }
+}
+
+body {
+  font-family: 'IBM Plex Mono', 'Courier New', Courier, monospace;
+  font-size: var(--fs-body);
+  background: var(--paper);
+  color: var(--ink);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  cursor: none;
+  /* NON aggiungere padding env() al body: le sezioni e la nav lo gestiscono già
+     individualmente. Il doppio safe-area restringeva canvas e griglie su iPhone. */
+}
+
+@media (hover: none) { body { cursor: auto; } }
+
+::selection { background: var(--blue); color: var(--paper); }
+
+/* ============================================================
+   CUSTOM CURSOR
+   ============================================================ */
+.cursor {
+  position: fixed;
+  top: 0; left: 0;
+  width: 10px; height: 10px;
+  background: var(--blue);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 10000;
+  transition: transform 0.12s cubic-bezier(.2,.7,.3,1), width .2s, height .2s, background .5s ease;
+  transform: translate(-50%, -50%);
+}
+.cursor.hover {
+  width: 36px; height: 36px;
+  mix-blend-mode: difference;
+  background: var(--paper);
+}
+.cursor-ring {
+  position: fixed;
+  top: 0; left: 0;
+  width: 36px; height: 36px;
+  border: 1px solid var(--blue);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 9999;
+  transition: transform 0.35s cubic-bezier(.2,.7,.3,1), border-color .5s ease;
+  transform: translate(-50%, -50%);
+  opacity: 0.6;
+}
+
+@media (hover: none) { .cursor, .cursor-ring { display: none; } }
+
+/* ============================================================
+   UTILITIES — HALFTONE PATTERNS
+   ============================================================ */
+.dot-grid-dense {
+  background-image: radial-gradient(circle, rgba(0,51,255,0.16) 1px, transparent 1px);
+  background-size: 8px 8px;
+}
+
+/* ============================================================
+   GRAIN OVERLAY (paper texture) — CSS puro, senza SVG
+   Il body::before SVG con utf8 non-standard causava problemi su iOS Safari.
+   Su touch, rimosso del tutto: il repaint di un position:fixed ad ogni scroll
+   è pesante su GPU mobile e può causare jank.
+   ============================================================ */
+@media (hover: hover) {
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    /* Pattern CSS puro: griglia di punti invece di SVG turbulence */
+    background-image:
+      radial-gradient(circle, rgba(0,0,0,0.08) 0.8px, transparent 0.8px),
+      radial-gradient(circle, rgba(0,0,0,0.04) 0.4px, transparent 0.4px);
+    background-size: 4px 4px, 2px 2px;
+    background-position: 0 0, 1px 1px;
+    pointer-events: none;
+    z-index: 9998;
+    opacity: 0.6;
+  }
+}
+
+/* ============================================================
+   NAV
+   ============================================================ */
+nav {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 500;
+  height: 60px;
+  background: rgba(10,10,10,0.96);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px); /* iOS Safari */
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 var(--pad-x);
+  padding-left: max(var(--pad-x), env(safe-area-inset-left));
+  padding-right: max(var(--pad-x), env(safe-area-inset-right));
+  border-bottom: 1px solid var(--blue);
+}
+
+.nav-logo {
+  font-family: 'IBM Plex Sans Condensed', sans-serif;
+  font-size: 1.2rem;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  color: var(--paper);
+  text-transform: uppercase;
+  position: relative;
+  padding-left: 20px;
+  text-decoration: none;
+}
+.nav-logo::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 9px; height: 9px;
+  background: var(--blue);
+  animation: blink 1.4s steps(2) infinite;
+}
+@keyframes blink { 50% { opacity: 0.2; } }
+.nav-logo span { color: var(--blue); }
+
+.nav-links {
+  display: none;
+  gap: 2rem;
+  list-style: none;
+}
+@media (min-width: 880px) { .nav-links { display: flex; } }
+
+.nav-links a {
+  font-size: 0.68rem;
+  font-weight: 500;
+  letter-spacing: 0.24em;
+  color: rgba(242,241,237,0.55);
+  text-decoration: none;
+  text-transform: uppercase;
+  position: relative;
+  transition: color 0.2s;
+}
+.nav-links a:hover { color: var(--paper); }
+.nav-links a::after {
+  content: '';
+  position: absolute;
+  left: 0; bottom: -12px;
+  width: 0; height: 1px;
+  background: var(--blue);
+  transition: width .25s;
+}
+.nav-links a:hover::after { width: 100%; }
+.nav-links a.is-current { color: var(--paper); }
+.nav-links a.is-current::after { width: 100%; }
+
+.nav-toggle {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  cursor: pointer;
+  background: none;
+  border: none;
+  padding: 4px;
+}
+@media (min-width: 880px) { .nav-toggle { display: none; } }
+.nav-toggle span {
+  display: block;
+  width: 22px; height: 2px;
+  background: var(--paper);
+}
+
+.nav-drawer {
+  position: fixed;
+  top: 60px; left: 0; right: 0; bottom: 0;
+  background: var(--ink);
+  z-index: 499;
+  padding: 3rem var(--pad-x);
+  padding-bottom: max(3rem, env(safe-area-inset-bottom));
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  transform: translateX(100%);
+  transition: transform 0.4s cubic-bezier(.7,0,.3,1);
+}
+.nav-drawer.open { transform: translateX(0); }
+.nav-drawer a {
+  display: block;
+  font-family: 'IBM Plex Sans Condensed', sans-serif;
+  font-size: 2.2rem;
+  font-weight: 700;
+  color: var(--paper);
+  text-decoration: none;
+  text-transform: uppercase;
+  padding: 0.6rem 0;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  letter-spacing: -1px;
+}
+.nav-drawer a:hover { color: var(--blue); }
+
+/* ============================================================
+   EDITORIAL LABELS / SECTION HEADERS
+   ============================================================ */
+.eyebrow {
+  font-size: var(--fs-micro);
+  font-weight: 600;
+  letter-spacing: 0.3em; /* proporzionale: non trabocca su mobile */
+  color: var(--blue);
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 0.75rem;
+}
+.eyebrow::before {
+  content: '';
+  display: block;
+  width: 8px; height: 8px;
+  background: var(--blue);
+}
+
+.section-title {
+  font-family: 'IBM Plex Sans Condensed', sans-serif;
+  font-size: var(--fs-h);
+  font-weight: 700;
+  line-height: 0.92;
+  letter-spacing: -1.5px;
+  text-transform: uppercase;
+  margin-bottom: 2.5rem;
+}
+.section-title em {
+  font-family: 'IBM Plex Serif', serif;
+  font-style: italic;
+  font-weight: 400;
+  color: var(--blue);
+}
+
+section {
+  padding: var(--pad-y) var(--pad-x);
+  padding-left: max(var(--pad-x), env(safe-area-inset-left));
+  padding-right: max(var(--pad-x), env(safe-area-inset-right));
+  position: relative;
+}
+
+/* Perf: il browser salta il rendering delle sezioni fuori schermo finché
+   non servono. contain-intrinsic-size evita salti dello scrollbar.
+   Esclusa la hero perché è sempre visibile al caricamento. */
+.latest, .calendar, .standings, .ig, .newsletter {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 800px;
+}
+
+/* ============================================================
+   HERO — brand + countdown + previous race
+   ============================================================ */
+.hero {
+  min-height: 100vh;
+  min-height: 100svh;
+  padding-top: 76px;
+  background: var(--blue);
+  color: var(--paper);
+  position: relative;
+  overflow: hidden;
+  display: grid;
+  grid-template-rows: auto 1fr auto auto;
+}
+
+.hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(circle, rgba(242,241,237,0.18) 1.5px, transparent 1.8px);
+  background-size: 18px 18px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.hero > * { position: relative; z-index: 1; }
+
+.hero-meta { display: flex; justify-content: space-between; align-items: flex-start; padding: 1.5rem var(--pad-x) 0; padding-left: max(var(--pad-x), env(safe-area-inset-left)); padding-right: max(var(--pad-x), env(safe-area-inset-right)); font-size: var(--fs-micro); letter-spacing: 0.2em; text-transform: uppercase; color: rgba(242,241,237,0.55); overflow: hidden; }
+.hero-meta span:first-child { max-width: 60%; }
+.hero-meta-r { text-align: right; white-space: nowrap; display: none; }
+@media (min-width: 480px) { .hero-meta-r { display: block; } }
+
+.hero-brand {
+  padding: 2rem var(--pad-x) 0;
+  padding-left: max(var(--pad-x), env(safe-area-inset-left));
+  padding-right: max(var(--pad-x), env(safe-area-inset-right));
+}
+.hero-title {
+  font-family: 'IBM Plex Sans Condensed', sans-serif;
+  font-size: var(--fs-mega);
+  font-weight: 700;
+  line-height: 0.85;
+  letter-spacing: -1px;
+  color: var(--paper);
+  text-transform: uppercase;
+}
+
+/* Hero data row: countdown + last race */
+.hero-data {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1px;
+  background: rgba(242,241,237,0.18);
+  margin: 2.5rem var(--pad-x) 1.5rem;
+  margin-left: max(var(--pad-x), env(safe-area-inset-left));
+  margin-right: max(var(--pad-x), env(safe-area-inset-right));
+  border: 1px solid rgba(242,241,237,0.18);
+}
+@media (min-width: 768px) {
+  .hero-data { grid-template-columns: 1fr 1.15fr; margin-top: 4rem; }
+}
+@media (min-width: 1200px) {
+  .hero-data { margin-top: 5rem; }
+}
+
+.hero-card {
+  background: var(--blue);
+  padding: 1.25rem 1.25rem;
+  position: relative;
+}
+.hero-card-eyebrow {
+  font-size: var(--fs-micro);
+  letter-spacing: 0.2em;
+  color: rgba(242,241,237,0.55);
+  text-transform: uppercase;
+  margin-bottom: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+/* Session badge dot — 3 states */
+.session-dot {
+  display: inline-block;
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  animation: sessionPulse 1.6s ease-in-out infinite;
+}
+.session-dot.idle { background: #999; box-shadow: 0 0 8px rgba(150,150,150,.7); }
+.session-dot.live { background: #FF2200; box-shadow: 0 0 12px rgba(255,34,0,1); animation-duration: .8s; }
+.session-badge[data-state="live"] { color: var(--paper); font-weight: 600; }
+@keyframes sessionPulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.45; transform: scale(0.75); }
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.7); }
+}
+
+.cd-session {
+  font-size: 0.75rem;
+  letter-spacing: 3px;
+  color: var(--paper);
+  text-transform: uppercase;
+  margin-bottom: 0.3rem;
+}
+.cd-timer {
+  font-family: 'IBM Plex Sans Condensed', sans-serif;
+  font-size: clamp(2.2rem, 9vw, 4rem);
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -1px;
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  color: var(--paper);
+}
+.cd-timer .num {
+  font-variant-numeric: tabular-nums;
+  min-width: 2ch;
+  display: inline-block;
+}
+.cd-timer .lbl {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.6rem;
+  font-weight: 400;
+  letter-spacing: 3px;
+  color: rgba(242,241,237,0.55);
+  text-transform: uppercase;
+}
+.cd-where {
+  margin-top: 0.7rem;
+  font-size: 0.65rem;
+  letter-spacing: 2px;
+  color: rgba(242,241,237,0.65);
+  text-transform: uppercase;
+}
+
+/* ============================================================
+   WEATHER WIDGET — countdown card
+   ============================================================ */
+.cd-weather {
+  margin-top: 1.1rem;
+  padding-top: 1rem;
+  border-top: 1px dashed rgba(242,241,237,0.25);
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-rows: auto auto;
+  gap: 0.5rem 0.85rem;
+  align-items: center;
+}
+.cd-weather-icon {
+  grid-row: span 2;
+  width: 44px; height: 44px;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--paper);
+  flex-shrink: 0;
+}
+.cd-weather-icon svg { width: 100%; height: 100%; }
+.cd-weather-data { display: flex; flex-direction: column; gap: 0.15rem; min-width: 0; }
+.cd-weather-temp {
+  font-family: 'IBM Plex Sans Condensed', sans-serif;
+  font-size: 1.6rem;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--paper);
+  letter-spacing: -0.5px;
+  display: flex;
+  align-items: baseline;
+  gap: 2px;
+}
+.cd-weather-deg {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.7rem;
+  font-weight: 400;
+  letter-spacing: 1px;
+  color: rgba(242,241,237,0.6);
+}
+.cd-weather-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+.cd-weather-lbl {
+  font-size: var(--fs-micro);
+  letter-spacing: 2px;
+  color: rgba(242,241,237,0.5);
+  text-transform: uppercase;
+}
+.cd-weather-cond {
+  font-size: 0.7rem;
+  letter-spacing: 1.5px;
+  color: rgba(242,241,237,0.85);
+  text-transform: uppercase;
+  font-weight: 500;
+}
+.cd-weather-extras {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.4rem;
+  padding-top: 0.7rem;
+  border-top: 1px solid rgba(242,241,237,0.12);
+}
+.cd-wx-extra { display: flex; flex-direction: column; gap: 0.1rem; }
+.cd-wx-extra-lbl {
+  font-size: var(--fs-micro);
+  letter-spacing: 2px;
+  color: rgba(242,241,237,0.5);
+  text-transform: uppercase;
+}
+.cd-wx-extra-v {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.5px;
+  color: var(--paper);
+  font-weight: 500;
+}
+/* Animazioni icone meteo */
+@keyframes wx-spin { from { transform: rotate(0); } to { transform: rotate(360deg); } }
+@keyframes wx-drop { 0%, 100% { transform: translateY(0); opacity: 1; } 50% { transform: translateY(2px); opacity: 0.5; } }
+@keyframes wx-flash { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+.wx-sun-rays { transform-origin: center; animation: wx-spin 18s linear infinite; }
+.wx-rain-drop { animation: wx-drop 1.2s ease-in-out infinite; }
+.wx-rain-drop:nth-child(2) { animation-delay: 0.4s; }
+.wx-rain-drop:nth-child(3) { animation-delay: 0.8s; }
+.wx-thunder { animation: wx-flash 1.8s steps(2) infinite; }
+
+/* last race card — denser, more editorial */
+.last-race { display: flex; flex-direction: column; gap: 0.5rem; }
+.last-race-head {
+  justify-content: space-between !important;
+  width: 100%;
+}
+.hc-badge {
+  font-size: var(--fs-micro);
+  letter-spacing: 0.15em;
+  padding: 3px 8px;
+  border: 1px solid rgba(242,241,237,0.4);
+  color: rgba(242,241,237,0.85);
+  font-weight: 500;
+  white-space: nowrap;
+}
+.last-race-track {
+  font-family: 'IBM Plex Sans Condensed', sans-serif;
+  font-size: 1.4rem;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  color: var(--paper);
+  text-transform: uppercase;
+  line-height: 1;
+  margin-top: 0.2rem;
+}
+@media (min-width: 768px) { .last-race-track { font-size: 1.6rem; } }
+.last-race-circuit {
+  font-size: var(--fs-micro);
+  letter-spacing: 2px;
+  color: rgba(242,241,237,0.55);
+  text-transform: uppercase;
+  margin-bottom: 0.4rem;
+}
+.last-race-podium {
+  display: grid;
+  grid-template-columns: 1fr; /* mobile: colonna singola */
+  gap: 0.7rem;
+  margin-top: 0.6rem;
+  padding-top: 0.8rem;
+  border-top: 1px solid rgba(242,241,237,0.25);
+}
+@media (min-width: 480px) {
+  .last-race-podium { grid-template-columns: repeat(3, 1fr); }
+}
+.podium-pos {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  position: relative;
+}
+.podium-pos .p-num {
+  font-family: 'IBM Plex Sans Condensed', sans-serif;
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--paper);
+  line-height: 0.9;
+  letter-spacing: -1px;
+}
+.podium-pos:first-child .p-num { color: #FFE600; }
+.podium-pos .p-line {
+  display: block;
+  width: 20px;
+  height: 2px;
+  background: rgba(242,241,237,0.5);
+  margin: 0.25rem 0;
+}
+.podium-pos:first-child .p-line { background: #FFE600; width: 28px; height: 3px; }
+.podium-pos .p-name {
+  font-family: 'IBM Plex Sans Condensed', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: -0.2px;
+  color: var(--paper);
+  text-transform: uppercase;
+}
+.podium-pos .p-team {
+  font-size: var(--fs-micro);
+  letter-spacing: 1.5px;
+  color: rgba(242,241,237,0.65);
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.podium-pos .p-team::before {
+  content: '';
+  width: 5px; height: 5px;
+  background: var(--team-c, rgba(242,241,237,0.5));
+  flex-shrink: 0;
+}
+.podium-pos .p-time {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: var(--fs-micro);
+  letter-spacing: 1px;
+  color: rgba(242,241,237,0.5);
+  margin-top: 0.15rem;
+  font-variant-numeric: tabular-nums;
+}
+.last-race-extras {
+  display: grid;
+  grid-template-columns: 1fr; /* mobile: colonna singola */
+  gap: 0.5rem;
+  margin-top: 0.8rem;
+  padding-top: 0.7rem;
+  border-top: 1px dashed rgba(242,241,237,0.25);
+}
+@media (min-width: 480px) {
+  .last-race-extras { grid-template-columns: repeat(3, 1fr); }
+}
+.last-race-extras > div { display: flex; flex-direction: column; gap: 0.2rem; }
+.last-race-extras .lre-lbl {
+  font-size: var(--fs-micro);
+  letter-spacing: 2px;
+  color: rgba(242,241,237,0.5);
+  text-transform: uppercase;
+}
+.last-race-extras .lre-v {
+  font-size: 0.72rem;
+  letter-spacing: 0.5px;
+  color: var(--paper);
+  font-weight: 500;
+  font-family: 'IBM Plex Mono', monospace;
+}
+
+/* Hero bottom: scroll indicator + meta */
+.hero-bottom {
+  padding: 1rem var(--pad-x) 1.5rem;
+  padding-left: max(var(--pad-x), env(safe-area-inset-left));
+  padding-right: max(var(--pad-x), env(safe-area-inset-right));
+  padding-bottom: max(1.5rem, env(safe-area-inset-bottom));
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  border-top: 1px solid rgba(242,241,237,0.15);
+  gap: 1rem;
+}
+
+.scroll-cue {
+  font-size: var(--fs-micro);
+  letter-spacing: 0.25em;
+  color: rgba(242,241,237,0.55);
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+.scroll-cue::after {
+  content: '↓';
+  font-size: 1rem;
+  animation: drop 1.6s ease-in-out infinite;
+}
+@keyframes drop { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(4px); } }
+
+/* ============================================================
+   LATEST ARTICLES
+   ============================================================ */
+.latest {
+  background: var(--paper);
+  border-top: 1px solid rgba(0,0,0,0.08);
+}
+.latest-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 2.5rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+.latest-counter {
+  font-size: var(--fs-micro);
+  letter-spacing: 0.25em;
+  color: var(--mid);
+  text-transform: uppercase;
+}
+
+/* === FEATURED GRID (1 big + 4 small) — usato in home articoli e ig di sezione === */
+.feat-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1px;
+  background: rgba(0,0,0,0.12);
+  border: 1px solid rgba(0,0,0,0.12);
+}
+@media (min-width: 900px) {
+  .feat-grid {
+    grid-template-columns: 1.4fr 1fr;
+    grid-template-rows: auto auto;
+  }
+  .feat-card--big { grid-row: span 2; }
+}
+
+.feat-card {
+  background: var(--paper);
+  padding: 1.5rem 1.25rem;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  transition: background .25s;
+  text-decoration: none;
+  color: inherit;
+}
+.feat-card--fallback { cursor: default; }
+.feat-card--fallback:hover { background: var(--paper); color: var(--ink); }
+.feat-card:hover { background: var(--blue); color: var(--paper); }
+.feat-card:hover .feat-cat,
+.feat-card:hover .feat-meta { color: rgba(242,241,237,0.7); }
+.feat-card:hover .feat-excerpt { color: rgba(242,241,237,0.85); }
+.feat-card:hover .feat-meta { border-top-color: rgba(242,241,237,0.3); }
+
+.feat-cat {
+  font-size: var(--fs-micro);
+  letter-spacing: 0.25em;
+  color: var(--blue);
+  text-transform: uppercase;
+  transition: color .25s;
+}
+.feat-title {
+  font-family: 'IBM Plex Sans Condensed', sans-serif;
+  font-size: 1.35rem;
+  font-weight: 700;
+  line-height: 1.05;
+  letter-spacing: -0.5px;
+  text-transform: uppercase;
+}
+.feat-card--big .feat-title { font-size: 2rem; }
+@media (min-width: 900px) {
+  .feat-card--big .feat-title { font-size: 2.8rem; }
+}
+.feat-cover {
+  aspect-ratio: 16/10;
+  min-height: 160px;
+  background: var(--blue);
+  margin: 0.5rem 0;
+  position: relative;
+  overflow: hidden;
+}
+.feat-cover.has-cover {
+  background-color: var(--mid-soft);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+.feat-cover.has-cover::before { display: none; }
+.feat-excerpt {
+  font-size: 0.78rem;
+  color: var(--mid);
+  line-height: 1.55;
+}
+.feat-meta {
+  margin-top: auto;
+  padding-top: 0.7rem;
+  display: flex;
+  justify-content: space-between;
+  border-top: 1px solid rgba(0,0,0,0.15);
+  font-size: var(--fs-micro);
+  letter-spacing: 0.2em;
+  color: var(--mid);
+  text-transform: uppercase;
+  transition: color .25s;
+}
+
+/* === SEE ALL — bottone editorial brutalist con freccia === */
+.see-all {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 2rem;
+  padding: 1.1rem 1.25rem;
+  border: 1px solid var(--ink);
+  background: var(--paper);
+  color: var(--ink);
+  text-decoration: none;
+  font-family: 'IBM Plex Mono', monospace;
+  text-transform: uppercase;
+  transition: background .25s, color .25s, border-color .25s;
+  width: 100%;
+}
+.see-all:hover { background: var(--ink); color: var(--paper); }
+.see-all:hover .see-all-sub { color: rgba(242,241,237,0.6); }
+.see-all:hover .see-all-arrow { transform: translateX(6px); }
+.see-all-lbl {
+  font-family: 'IBM Plex Sans Condensed', sans-serif;
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  line-height: 1;
+}
+.see-all-sub {
+  flex: 1;
+  font-size: var(--fs-micro);
+  letter-spacing: 0.25em;
+  color: var(--mid);
+  text-align: right;
+  margin-right: 0.5rem;
+  transition: color .25s;
+}
+.see-all-arrow {
+  font-family: 'IBM Plex Sans Condensed', sans-serif;
+  font-size: 1.8rem;
+  font-weight: 400;
+  line-height: 1;
+  transition: transform .3s cubic-bezier(.2,.7,.3,1);
+}
+
+/* Stats home section */
+.stats-home { background: var(--paper); }
+
+/* ============================================================
+   MINI STATS (sotto Mondiale 2026)
+   ============================================================ */
+.mini-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1px;
+  background: rgba(10,10,10,.18);
+  margin-top: 2rem;
+  border: 1px solid rgba(10,10,10,.18);
+}
+@media (min-width: 768px) {
+  .mini-stats { grid-template-columns: repeat(4, 1fr); }
+}
+.mini-stat {
+  background: var(--paper);
+  padding: 1.25rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: .4rem;
+  min-height: 110px;
+  position: relative;
+}
+.mini-stat-lbl {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: var(--fs-micro);
+  letter-spacing: .22em;
+  color: var(--blue);
+  text-transform: uppercase;
+  font-weight: 600;
+}
+.mini-stat-v {
+  font-family: 'IBM Plex Sans Condensed', sans-serif;
+  font-size: clamp(1.3rem, 3vw, 1.8rem);
+  font-weight: 700;
+  line-height: 1.05;
+  color: var(--ink);
+  text-transform: uppercase;
+  letter-spacing: -.5px;
+  margin-top: auto;
+}
+.mini-stat-sub {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: var(--fs-tiny);
+  letter-spacing: .15em;
+  color: var(--mid);
+  text-transform: uppercase;
+}
+
+/* ============================================================
+   CALENDARIO
+   ============================================================ */
+.calendar { background: var(--paper-warm); }
+.calendar-list { display: flex; flex-direction: column; }
+
+.cal-row {
+  display: grid;
+  grid-template-columns: 50px 1fr 80px;
+  align-items: center;
+  padding: 1rem 0;
+  border-bottom: 1px solid rgba(0,0,0,0.12);
+  gap: 0.75rem;
+  cursor: pointer;
+  transition: background 0.2s;
+  position: relative;
+}
+@media (min-width: 768px) {
+  .cal-row { grid-template-columns: 80px 1fr 1fr 1fr 100px; padding: 1.4rem 0; gap: 1.5rem; }
+}
+.cal-row:first-child { border-top: 1px solid rgba(0,0,0,0.12); }
+.cal-row:hover { background: rgba(0,51,255,0.04); }
+.cal-row:hover .cal-name { color: var(--blue); }
+
+.cal-round {
+  font-family: 'IBM Plex Sans Condensed', sans-serif;
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--ink);
+}
+.cal-name {
+  font-family: 'IBM Plex Sans Condensed', sans-serif;
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+  color: var(--ink);
+  text-transform: uppercase;
+  transition: color .2s;
+}
+@media (min-width: 768px) { .cal-name { font-size: 1.2rem; } }
+.cal-circuit {
+  font-size: 0.7rem;
+  letter-spacing: 1px;
+  color: var(--mid);
+  display: none;
+}
+@media (min-width: 768px) { .cal-circuit { display: block; } }
+.cal-date {
+  font-size: 0.72rem;
+  letter-spacing: 2px;
+  color: var(--mid);
+  text-transform: uppercase;
+}
+.cal-status {
+  font-size: var(--fs-micro);
+  letter-spacing: 0.2em;
+  text-align: right;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+.cal-status.done { color: var(--mid-soft); }
+.cal-status.live { color: var(--red); animation: blink 1s steps(2) infinite; }
+.cal-status.next { color: var(--blue); }
+.cal-status.upcoming { color: var(--mid); }
+
+.cal-row.is-done { opacity: 0.55; }
+.cal-row.is-live::before {
+  content: '';
+  position: absolute; left: -8px; top: 50%;
+  width: 4px; height: 60%;
+  background: var(--red);
+  transform: translateY(-50%);
+}
+.cal-row.is-next::before {
+  content: '';
+  position: absolute; left: -8px; top: 50%;
+  width: 4px; height: 60%;
+  background: var(--blue);
+  transform: translateY(-50%);
+}
+
+/* ============================================================
+   STANDINGS — Drivers / Constructors with tabs
+   ============================================================ */
+.standings { background: var(--paper); }
+.tabs {
+  display: inline-flex;
+  border: 1px solid var(--ink);
+  margin-bottom: 2.5rem;
+}
+.tab {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: var(--fs-tiny);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  padding: 0.7rem 1.2rem;
+  background: var(--paper);
+  border: none;
+  color: var(--ink);
+  cursor: pointer;
+  font-weight: 600;
+  transition: background 0.2s, color 0.2s;
+  touch-action: manipulation;
+  -webkit-appearance: none;
+}
+.tab + .tab { border-left: 1px solid var(--ink); }
+.tab.active { background: var(--blue); color: var(--paper); }
+
+.standings-list { display: flex; flex-direction: column; gap: 0; }
+
+.st-row {
+  display: grid;
+  grid-template-columns: 36px 1fr 60px;
+  align-items: center;
+  padding: 0.85rem 0;
+  border-bottom: 1px solid rgba(0,0,0,0.12);
+  gap: 0.7rem;
+  position: relative;
+}
+@media (min-width: 600px) {
+  .st-row { grid-template-columns: 50px 1fr 2fr 80px; gap: 1rem; }
+}
+.st-row:first-child { border-top: 1px solid rgba(0,0,0,0.12); }
+.st-row:hover { background: rgba(0,51,255,0.04); }
+
+.st-pos {
+  font-family: 'IBM Plex Sans Condensed', sans-serif;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--ink);
+}
+.st-pos.top { color: var(--blue); }
+.st-name {
+  font-family: 'IBM Plex Sans Condensed', sans-serif;
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: -0.2px;
+  text-transform: uppercase;
+}
+@media (min-width: 600px) { .st-name { font-size: 1.1rem; } }
+.st-team {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.68rem;
+  letter-spacing: 2px;
+  color: var(--mid);
+  text-transform: uppercase;
+  margin-top: 2px;
+}
+.st-team-dot { width: 10px; height: 10px; flex-shrink: 0; display: inline-block; }
+
+.st-bar {
+  display: none;
+  height: 8px;
+  background-image: radial-gradient(circle, rgba(0,0,0,0.18) 1px, transparent 1.4px);
+  background-size: 5px 5px;
+  position: relative;
+}
+@media (min-width: 600px) { .st-bar { display: block; } }
+.st-bar-fill {
+  position: absolute;
+  top: 0; left: 0; bottom: 0;
+  background: var(--blue);
+  background-image: radial-gradient(circle, rgba(255,255,255,0.3) 1.2px, transparent 1.5px);
+  background-size: 5px 5px;
+  transition: width 1.2s cubic-bezier(.2,.7,.3,1);
+}
+
+.st-pts {
+  font-family: 'IBM Plex Sans Condensed', sans-serif;
+  font-size: 1.3rem;
+  font-weight: 700;
+  text-align: right;
+  line-height: 1;
+}
+.st-pts-l {
+  display: block;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: var(--fs-micro);
+  font-weight: 400;
+  letter-spacing: 2px;
+  color: var(--mid);
+  margin-top: 2px;
+  text-transform: uppercase;
+}
+
+/* ============================================================
+   INSTAGRAM SHOWCASE
+   ============================================================ */
+.ig { background: var(--paper-warm); }
+.ig-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--gutter);
+}
+@media (min-width: 600px) { .ig-grid { grid-template-columns: repeat(3, 1fr); } }
+@media (min-width: 1000px) { .ig-grid { grid-template-columns: repeat(3, 1fr); } }
+
+.ig-post {
+  aspect-ratio: 1/1;
+  min-height: 150px; /* fallback se aspect-ratio non funziona */
+  background: #0033FF;
+  background: var(--blue);
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+}
+.ig-post-overlay {
+  position: absolute; inset: 0;
+  background: rgba(0,32,180,0);
+  display: flex;
+  align-items: flex-end;
+  padding: 0.75rem;
+  transition: background .25s;
+}
+.ig-post:hover .ig-post-overlay { background: rgba(0,32,180,0.85); }
+.ig-post-meta {
+  font-size: var(--fs-micro);
+  letter-spacing: 0.15em;
+  color: var(--paper);
+  text-transform: uppercase;
+  opacity: 0;
+  transition: opacity .25s;
+}
+.ig-post:hover .ig-post-meta { opacity: 1; }
+
+.ig-cta {
+  margin-top: 2rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0.9rem 1.4rem;
+  background: var(--ink);
+  color: var(--paper);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: var(--fs-tiny);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  text-decoration: none;
+  border: 1px solid var(--ink);
+  transition: background .2s, color .2s;
+}
+.ig-cta:hover { background: var(--blue); border-color: var(--blue); }
+.ig-cta::after { content: '→'; font-size: 1.1rem; }
+
+/* ============================================================
+   NEWSLETTER
+   ============================================================ */
+.newsletter {
+  background: var(--ink);
+  color: var(--paper);
+  text-align: left;
+}
+.newsletter .section-title { color: var(--paper); }
+.newsletter .section-title em { color: var(--blue); }
+.newsletter .eyebrow { color: var(--blue); }
+
+.nl-wrap {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2.5rem;
+}
+@media (min-width: 900px) { .nl-wrap { grid-template-columns: 1.2fr 1fr; align-items: end; } }
+
+.nl-intro {
+  font-size: 0.9rem;
+  color: rgba(242,241,237,0.7);
+  max-width: 520px;
+  line-height: 1.7;
+}
+
+.nl-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.nl-input {
+  font-family: 'IBM Plex Mono', monospace;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid rgba(242,241,237,0.3);
+  color: var(--paper);
+  padding: 0.8rem 0;
+  font-size: 1rem; /* minimo 16px su iOS evita lo zoom automatico */
+  outline: none;
+  transition: border-color .25s;
+  -webkit-appearance: none;
+  border-radius: 0; /* rimuove il bordo arrotondato di default su iOS */
+  width: 100%;
+}
+.nl-input::placeholder { color: rgba(242,241,237,0.4); letter-spacing: 1px; }
+.nl-input:focus { border-bottom-color: var(--blue); }
+
+.nl-submit {
+  font-family: 'IBM Plex Mono', monospace;
+  background: var(--blue);
+  color: var(--paper);
+  border: none;
+  padding: 1rem 1.5rem;
+  font-size: var(--fs-tiny);
+  font-weight: 600;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition: background .25s;
+  width: 100%; /* full-width su mobile */
+  -webkit-appearance: none;
+  touch-action: manipulation; /* rimuove il delay 300ms su iOS */
+}
+.nl-submit:hover { background: var(--blue-glow); }
+.nl-submit::after { content: '→'; font-size: 1.2rem; }
+
+.nl-disclaimer {
+  font-size: var(--fs-micro);
+  letter-spacing: 0.15em;
+  color: rgba(242,241,237,0.4);
+  text-transform: uppercase;
+  margin-top: 0.5rem;
+}
+
+/* ============================================================
+   FOOTER
+   ============================================================ */
+footer {
+  background: var(--ink);
+  color: var(--paper);
+  border-top: 1px solid rgba(242,241,237,0.15);
+  padding: 3rem var(--pad-x) 2rem;
+  padding-left: max(var(--pad-x), env(safe-area-inset-left));
+  padding-right: max(var(--pad-x), env(safe-area-inset-right));
+  padding-bottom: max(2rem, env(safe-area-inset-bottom));
+}
+.foot-top {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2rem;
+  margin-bottom: 3rem;
+}
+@media (min-width: 768px) { .foot-top { grid-template-columns: 2fr 1fr 1fr 1fr; } }
+
+.foot-brand {
+  font-family: 'IBM Plex Sans Condensed', sans-serif;
+  font-size: 3rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  line-height: 0.9;
+  letter-spacing: -1.5px;
+}
+.foot-brand span { color: var(--blue); }
+.foot-brand-sub {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.7rem;
+  letter-spacing: 3px;
+  color: rgba(242,241,237,0.5);
+  text-transform: uppercase;
+  margin-top: 0.5rem;
+}
+
+.foot-col h4 {
+  font-size: var(--fs-micro);
+  letter-spacing: 0.25em;
+  color: var(--blue);
+  text-transform: uppercase;
+  margin-bottom: 1rem;
+  font-weight: 600;
+}
+.foot-col ul { list-style: none; display: flex; flex-direction: column; gap: 0.5rem; }
+.foot-col a {
+  font-size: 0.78rem;
+  color: rgba(242,241,237,0.7);
+  text-decoration: none;
+  letter-spacing: 1px;
+  transition: color .2s;
+}
+.foot-col a:hover { color: var(--blue); }
+
+.foot-bottom {
+  padding-top: 1.5rem;
+  border-top: 1px solid rgba(242,241,237,0.15);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+  font-size: var(--fs-micro);
+  letter-spacing: 0.2em;
+  color: rgba(242,241,237,0.4);
+  text-transform: uppercase;
+}
+
+/* ============================================================
+   SCROLL REVEAL
+   ============================================================ */
+.reveal {
+  opacity: 0;
+  transform: translateY(28px);
+  transition: opacity .9s cubic-bezier(.2,.7,.3,1), transform .9s cubic-bezier(.2,.7,.3,1);
+}
+.reveal.in { opacity: 1; transform: none; }
+
+/* Su touch device (iOS/Android): nessuna animazione nascosta.
+   L'IntersectionObserver su file:// è inaffidabile e lascerebbe
+   le sezioni invisibili. Mostriamo tutto subito. */
+@media (hover: none) {
+  .reveal, .reveal.in {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+}
+
+/* Fallback automatico CSS: se dopo 5s il contenuto non è caricato,
+   mostra un messaggio chiaro. Zero JS richiesto. */
+.loading-placeholder {
+  padding: 1.5rem 0;
+  color: var(--mid);
+  font-size: 0.78rem;
+  letter-spacing: 1px;
+  line-height: 1.6;
+  animation: showAfterDelay 0s 5s both;
+}
+@keyframes showAfterDelay {
+  from { opacity: 0; height: 0; overflow: hidden; }
+  to   { opacity: 1; height: auto; }
+}
+/* Nasconde il testo originale "Caricamento..." dopo 5s */
+.hide-after-load {
+  animation: hideAfterDelay 0s 5s both;
+}
+@keyframes hideAfterDelay {
+  to { display: none; }
+}
+.ac-v0, .ac-v1, .ac-v2 { position: relative; }
+.ac-v0::before, .ac-v1::before, .ac-v2::before {
+  content: ''; position: absolute; inset: 0; pointer-events: none; z-index: 1;
+}
+.ac-v0::before {
+  background: radial-gradient(circle, rgba(242,241,237,0.88) 1.5px, transparent 2px) 0 0 / 8px 8px;
+  -webkit-mask-image: linear-gradient(135deg, transparent 15%, black 75%);
+  mask-image: linear-gradient(135deg, transparent 15%, black 75%);
+}
+.ac-v1::before {
+  background: radial-gradient(circle, rgba(242,241,237,0.8) 2px, transparent 2.5px) 0 0 / 10px 10px;
+  -webkit-mask-image: radial-gradient(ellipse 60% 60% at 50% 50%, black 20%, transparent 70%);
+  mask-image: radial-gradient(ellipse 60% 60% at 50% 50%, black 20%, transparent 70%);
+}
+.ac-v2::before {
+  background: radial-gradient(circle, rgba(242,241,237,0.75) 1px, transparent 1.5px) 0 0 / 6px 6px;
+  -webkit-mask-image: linear-gradient(to bottom, black 0%, transparent 90%);
+  mask-image: linear-gradient(to bottom, black 0%, transparent 90%);
+}
+.ig-post::before {
+  content: ''; position: absolute; inset: 0; pointer-events: none;
+}
+.ig-v0::before { background: radial-gradient(circle,rgba(242,241,237,.24) .12em,transparent .16em) 0 0/1em 1em; }
+.ig-v1::before { background: radial-gradient(circle,rgba(242,241,237,.2) .15em,transparent .2em) .3em .3em/1.3em 1.3em; }
+.ig-v2::before { background: radial-gradient(circle,rgba(242,241,237,.3) .08em,transparent .12em) 0 0/.6em .6em; }
+.ig-v3::before { background: radial-gradient(circle,rgba(242,241,237,.18) .18em,transparent .22em) .15em .15em/1.4em 1.4em; }
+.ig-v4::before { background: radial-gradient(circle,rgba(242,241,237,.26) .1em,transparent .14em) 0 0/.75em .75em; }
+
+/* ============================================================
+   LOADER — Locomotive-style glitch reveal
+   ============================================================ */
+.loader {
+  position: fixed;
+  inset: 0;
+  background: var(--blue);
+  z-index: 99999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity .6s cubic-bezier(.6,0,.2,1), visibility .6s;
+  /* Fallback CSS puro: anche se JS crasha, il loader sparisce dopo 3s */
+  animation: loaderAutohide 3.5s forwards;
+}
+/* dot pattern (halftone) sopra al loader, sottile */
+.loader::before {
+  content: '';
+  position: absolute; inset: 0;
+  background-image: radial-gradient(circle, rgba(242,241,237,.12) 1.5px, transparent 1.8px);
+  background-size: 18px 18px;
+  pointer-events: none;
+}
+.loader.gone {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  animation: none;
+}
+@keyframes loaderAutohide {
+  0%   { opacity: 1; visibility: visible; }
+  85%  { opacity: 1; visibility: visible; }
+  100% { opacity: 0; visibility: hidden; pointer-events: none; }
+}
+.loader-inner {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 0 var(--pad-x);
+  width: 100%;
+  max-width: 100%;
+}
+.loader-logo {
+  font-family: 'IBM Plex Sans Condensed', sans-serif;
+  font-size: clamp(2.8rem, 12vw, 8rem);
+  font-weight: 700;
+  letter-spacing: -.04em;
+  color: var(--paper);
+  text-transform: uppercase;
+  line-height: .9;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  text-align: center;
+}
+.loader-word {
+  display: inline-block;
+  font-variant-numeric: tabular-nums;
+}
+.loader-word-blue {
+  color: rgba(242,241,237,.55); /* sarà animato a paper più tardi */
+}
+@media (prefers-reduced-motion: reduce) {
+  .loader { animation-duration: 1s; }
+}
+</style>
+</head>
+<body>
+
+<!-- ============================================================
+     LOADER
+     ============================================================ -->
+<!-- ============================================================
+     LOADER — Locomotive-style char glitch reveal
+     ============================================================ -->
+<div class="loader" id="loader" aria-hidden="false">
+  <div class="loader-inner">
+    <div class="loader-logo">
+      <span class="loader-word" id="loaderWord1">XXXX</span><span class="loader-word loader-word-blue" id="loaderWord2">XXXX</span>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     CUSTOM CURSOR
+     ============================================================ -->
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+
+<!-- ============================================================
+     NAV
+     ============================================================ -->
+<nav>
+  <a href="#top" class="nav-logo">Cool<span>Down</span></a>
+  <ul class="nav-links">
+    <li><a href="#hero">Hero</a></li>
+    <li><a href="articoli.html">Articoli</a></li>
+    <li><a href="feed.html">Feed</a></li>
+    <li><a href="statistiche.html">Stats</a></li>
+    <li><a href="calendario.html">Calendario</a></li>
+    <li><a href="classifica.html">Classifica</a></li>
+  </ul>
+  <button class="nav-toggle" id="navToggle" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+<div class="nav-drawer" id="navDrawer">
+  <a href="#hero">Hero</a>
+  <a href="articoli.html">Articoli</a>
+  <a href="feed.html">Feed</a>
+  <a href="statistiche.html">Stats</a>
+  <a href="calendario.html">Calendario</a>
+  <a href="classifica.html">Classifica</a>
+</div>
+
+<!-- ============================================================
+     HERO
+     ============================================================ -->
+
+<section class="hero" id="hero">
+  <div class="hero-brand">
+    <h1 class="hero-title">CoolDown</h1>
+  </div>
+
+  <div class="hero-data">
+    <!-- COUNTDOWN -->
+    <div class="hero-card">
+      <div class="hero-card-eyebrow session-badge" id="sessionBadge" data-state="idle">
+        <span class="session-dot idle" id="sessionDot"></span>
+        <span id="sessionLbl">Prossima sessione</span>
+      </div>
+      <div class="cd-session" id="cdSession">Caricamento…</div>
+      <div class="cd-timer">
+        <span class="num" id="cdD">00</span><span class="lbl">G</span>
+        <span class="num" id="cdH">00</span><span class="lbl">H</span>
+        <span class="num" id="cdM">00</span><span class="lbl">M</span>
+        <span class="num" id="cdS">00</span><span class="lbl">S</span>
+      </div>
+      <div class="cd-where" id="cdWhere">—</div>
+
+      <!-- WEATHER -->
+      <div class="cd-weather" id="cdWeather" aria-label="Meteo previsto per la sessione">
+        <div class="cd-weather-icon" id="cdWxIcon" aria-hidden="true">
+          <!-- SVG injected by JS -->
+        </div>
+        <div class="cd-weather-data">
+          <div class="cd-weather-temp"><span id="cdWxTemp">—</span><span class="cd-weather-deg">°C</span></div>
+          <div class="cd-weather-meta">
+            <span class="cd-weather-lbl">// Meteo previsto</span>
+            <span class="cd-weather-cond" id="cdWxCond">—</span>
+          </div>
+        </div>
+        <div class="cd-weather-extras">
+          <div class="cd-wx-extra"><span class="cd-wx-extra-lbl">Vento</span><span class="cd-wx-extra-v"><span id="cdWxWind">—</span> km/h</span></div>
+          <div class="cd-wx-extra"><span class="cd-wx-extra-lbl">Pioggia</span><span class="cd-wx-extra-v"><span id="cdWxRain">—</span>%</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- LAST RACE PODIUM (mini) -->
+    <div class="hero-card last-race">
+      <div class="hero-card-eyebrow last-race-head">
+        <span>// Ultima gara</span>
+        <span class="hc-badge">Concluso · R<span id="lrRound">—</span></span>
+      </div>
+      <div class="last-race-track" id="lrTrack">—</div>
+      <div class="last-race-circuit" id="lrCircuit">—</div>
+
+      <div class="last-race-podium" id="lrPodium">
+        <div class="podium-pos"><span class="p-num">1</span><span class="p-line"></span><span class="p-name">—</span><span class="p-team">—</span><span class="p-time">—</span></div>
+        <div class="podium-pos"><span class="p-num">2</span><span class="p-line"></span><span class="p-name">—</span><span class="p-team">—</span><span class="p-time">—</span></div>
+        <div class="podium-pos"><span class="p-num">3</span><span class="p-line"></span><span class="p-name">—</span><span class="p-team">—</span><span class="p-time">—</span></div>
+      </div>
+
+      <div class="last-race-extras">
+        <div><span class="lre-lbl">Pole</span><span class="lre-v" id="lrPole">—</span></div>
+        <div><span class="lre-lbl">Giro veloce</span><span class="lre-v" id="lrFastest">—</span></div>
+        <div><span class="lre-lbl">Data</span><span class="lre-v" id="lrDate">—</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="hero-bottom">
+    <div class="scroll-cue">Scroll</div>
+  </div>
+</section>
+
+<!-- ============================================================
+     LATEST ARTICLES — featured layout (1 big + 4 small)
+     ============================================================ -->
+<section class="latest" id="articles">
+  <div class="reveal">
+    <div class="latest-header">
+      <div>
+        <div class="eyebrow">// News</div>
+        <h2 class="section-title">Articoli <em>recenti</em></h2>
+      </div>
+      <div class="latest-counter" id="articlesCounter">— / 005 · Edition 01</div>
+    </div>
+  </div>
+
+  <div class="feat-grid reveal" id="articlesGrid">
+    <article class="feat-card feat-card--big">
+      <div class="feat-cat">Caricamento…</div>
+      <div class="feat-cover ac-v0"></div>
+      <h3 class="feat-title">—</h3>
+      <p class="feat-excerpt">—</p>
+      <div class="feat-meta"><span>—</span><span>→</span></div>
+    </article>
+    <article class="feat-card"><div class="feat-cat">—</div><h3 class="feat-title">—</h3><p class="feat-excerpt">—</p><div class="feat-meta"><span>—</span><span>→</span></div></article>
+    <article class="feat-card"><div class="feat-cat">—</div><h3 class="feat-title">—</h3><p class="feat-excerpt">—</p><div class="feat-meta"><span>—</span><span>→</span></div></article>
+    <article class="feat-card"><div class="feat-cat">—</div><h3 class="feat-title">—</h3><p class="feat-excerpt">—</p><div class="feat-meta"><span>—</span><span>→</span></div></article>
+    <article class="feat-card"><div class="feat-cat">—</div><h3 class="feat-title">—</h3><p class="feat-excerpt">—</p><div class="feat-meta"><span>—</span><span>→</span></div></article>
+  </div>
+
+  <a class="see-all" href="articoli.html" aria-label="Vedi tutti gli articoli">
+    <span class="see-all-lbl">See all</span>
+    <span class="see-all-sub">// Articoli per categoria</span>
+    <span class="see-all-arrow" aria-hidden="true">→</span>
+  </a>
+</section>
+
+<!-- ============================================================
+     INSTAGRAM SHOWCASE — Dal feed
+     ============================================================ -->
+<section class="ig" id="ig">
+  <div class="reveal">
+    <div class="eyebrow">// Social</div>
+    <h2 class="section-title">Dal <em>feed</em></h2>
+  </div>
+  <div class="ig-grid reveal" id="igGrid">
+    <div class="ig-post ig-v2"><div class="ig-post-overlay"><div class="ig-post-meta">Verstappen vs Leclerc · Imola 2026<br/>12 mag</div></div></div>
+    <div class="ig-post ig-v3"><div class="ig-post-overlay"><div class="ig-post-meta">La radio di Hamilton dopo Suzuka<br/>08 mag</div></div></div>
+    <div class="ig-post ig-v0"><div class="ig-post-overlay"><div class="ig-post-meta">Perché McLaren ha cambiato fondo<br/>05 mag</div></div></div>
+    <div class="ig-post ig-v4"><div class="ig-post-overlay"><div class="ig-post-meta">Top 5 sorpassi del 2026 (finora)<br/>02 mag</div></div></div>
+    <div class="ig-post ig-v1"><div class="ig-post-overlay"><div class="ig-post-meta">Il box Ferrari in 47 secondi<br/>29 apr</div></div></div>
+    <div class="ig-post ig-v2"><div class="ig-post-overlay"><div class="ig-post-meta">Mercato piloti 2027 — rumors<br/>26 apr</div></div></div>
+  </div>
+  <a class="see-all" href="feed.html" aria-label="Vedi tutti i post del feed">
+    <span class="see-all-lbl">See all</span>
+    <span class="see-all-sub">// Tutti i post Instagram + TikTok</span>
+    <span class="see-all-arrow" aria-hidden="true">→</span>
+  </a>
+</section>
+
+<!-- ============================================================
+     STATS — sezione dedicata in home con 4 mini box
+     ============================================================ -->
+<section class="stats-home" id="stats-home">
+  <div class="reveal">
+    <div class="eyebrow">// Numbers</div>
+    <h2 class="section-title">Stats <em>2026</em></h2>
+  </div>
+
+  <div class="mini-stats reveal">
+    <div class="mini-stat">
+      <div class="mini-stat-lbl">// Pitstop più veloce</div>
+      <div class="mini-stat-v" id="msPitstop">—</div>
+      <div class="mini-stat-sub" id="msPitstopSub">Team · GP</div>
+    </div>
+    <div class="mini-stat">
+      <div class="mini-stat-lbl">// Vittorie leader</div>
+      <div class="mini-stat-v" id="msWins">—</div>
+      <div class="mini-stat-sub" id="msWinsSub">Pilota</div>
+    </div>
+    <div class="mini-stat">
+      <div class="mini-stat-lbl">// Distacco P1—P2</div>
+      <div class="mini-stat-v" id="msGap">—</div>
+      <div class="mini-stat-sub" id="msGapSub">Punti</div>
+    </div>
+    <div class="mini-stat">
+      <div class="mini-stat-lbl">// In testa costruttori</div>
+      <div class="mini-stat-v" id="msTeam">—</div>
+      <div class="mini-stat-sub" id="msTeamSub">Punti totali</div>
+    </div>
+  </div>
+
+  <a class="see-all" href="statistiche.html" aria-label="Vedi tutte le statistiche">
+    <span class="see-all-lbl">See all</span>
+    <span class="see-all-sub">// Tutte le statistiche della stagione</span>
+    <span class="see-all-arrow" aria-hidden="true">→</span>
+  </a>
+</section>
+
+<!-- ============================================================
+     CALENDARIO — home mini (3 GP: scorso, prossimo, successivo)
+     ============================================================ -->
+<section class="calendar dot-grid-dense" id="calendar">
+  <div class="reveal">
+    <div class="eyebrow">// Schedule</div>
+    <h2 class="section-title">Calendario <em>2026</em></h2>
+  </div>
+  <div class="calendar-list reveal" id="calendarList">
+    <div class="hide-after-load" style="padding: 1.5rem 0; color: var(--mid); font-size: 0.78rem; letter-spacing: 1px;">Caricamento calendario…</div>
+    <div class="loading-placeholder">Dati non disponibili offline.<br/>Apri il file da un server o attiva la connessione.</div>
+  </div>
+
+  <a class="see-all" href="calendario.html" aria-label="Vedi calendario completo">
+    <span class="see-all-lbl">See all</span>
+    <span class="see-all-sub">// Calendario completo</span>
+    <span class="see-all-arrow" aria-hidden="true">→</span>
+  </a>
+</section>
+
+<!-- ============================================================
+     STANDINGS — top 11 + see all
+     ============================================================ -->
+<section class="standings" id="standings">
+  <div class="reveal">
+    <div class="eyebrow">// Classifica</div>
+    <h2 class="section-title">Mondiale <em>2026</em></h2>
+    <div class="tabs">
+      <button class="tab active" data-tab="drivers">Piloti</button>
+      <button class="tab" data-tab="constructors">Costruttori</button>
+    </div>
+  </div>
+  <div class="standings-list reveal" id="standingsList">
+    <div class="hide-after-load" style="padding: 1.5rem 0; color: var(--mid); font-size: 0.78rem; letter-spacing: 1px;">Caricamento classifica…</div>
+    <div class="loading-placeholder">Dati non disponibili offline.<br/>Apri il file da un server o attiva la connessione.</div>
+  </div>
+
+  <a class="see-all" href="classifica.html" aria-label="Vedi classifica completa">
+    <span class="see-all-lbl">See all</span>
+    <span class="see-all-sub">// Classifica completa</span>
+    <span class="see-all-arrow" aria-hidden="true">→</span>
+  </a>
+</section>
+
+
+<!-- ============================================================
+     NEWSLETTER
+     ============================================================ -->
+<section class="newsletter" id="newsletter">
+  <div class="reveal">
+    <div class="eyebrow">// Iscriviti</div>
+    <h2 class="section-title">Iscriviti alla<br/><em>community</em></h2>
+  </div>
+  <div class="nl-wrap reveal">
+    <p class="nl-intro">
+      Una newsletter settimanale — il lunedì mattina, dopo ogni Gran Premio.
+      Analisi sintetiche, dati che non leggi altrove, e zero rumore.
+      Niente click-bait, niente spam.
+    </p>
+    <form class="nl-form" id="nlForm">
+      <input type="email" class="nl-input" placeholder="tu@dominio.it" required id="nlEmail" />
+      <button type="submit" class="nl-submit">Iscrivimi</button>
+      <div class="nl-disclaimer">Privacy garantita · Disiscrizione con 1 click</div>
+    </form>
+  </div>
+</section>
+
+<!-- ============================================================
+     FOOTER
+     ============================================================ -->
+<footer>
+  <div class="foot-top">
+    <div>
+      <div class="foot-brand">Cool<span>Down</span></div>
+      <div class="foot-brand-sub">Italian F1 Magazine · est. 2025</div>
+    </div>
+    <div class="foot-col">
+      <h4>// Sezioni</h4>
+      <ul>
+        <li><a href="articoli.html">Articoli</a></li>
+        <li><a href="calendario.html">Calendario</a></li>
+        <li><a href="classifica.html">Classifica</a></li>
+        <li><a href="statistiche.html">Stats</a></li>
+        <li><a href="feed.html">Feed</a></li>
+      </ul>
+    </div>
+    <div class="foot-col">
+      <h4>// Social</h4>
+      <ul>
+        <li><a href="#" target="_blank">Instagram</a></li>
+        <li><a href="#" target="_blank">TikTok</a></li>
+        <li><a href="#" target="_blank">X / Twitter</a></li>
+        <li><a href="#" target="_blank">YouTube</a></li>
+      </ul>
+    </div>
+    <div class="foot-col">
+      <h4>// Info</h4>
+      <ul>
+        <li><a href="#">Chi siamo</a></li>
+        <li><a href="#">Contatti</a></li>
+        <li><a href="#">Privacy</a></li>
+        <li><a href="#">Termini</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="foot-bottom">
+    <span>© 2026 CoolDown · Tutti i diritti riservati</span>
+    <span>Dati: Jolpica-F1 · OpenF1</span>
+  </div>
+</footer>
+
+<!-- ============================================================
+     SCRIPT
+     ============================================================ -->
+<script>
+/* ============================================================
+   LOADER — Locomotive-style char glitch reveal
+   Registrato PRIMA di qualsiasi altro codice così è robusto.
+   ============================================================ */
+(() => {
+  const loader = document.getElementById('loader');
+  const w1 = document.getElementById('loaderWord1');
+  const w2 = document.getElementById('loaderWord2');
+  if (!loader || !w1 || !w2) return;
+
+  // Se l'utente ha già visto il loader in questa sessione, skip
+  let alreadyShown = false;
+  try { alreadyShown = sessionStorage.getItem('cd-loader-v1') === '1'; } catch {}
+
+  const FINAL_1 = 'COOL';
+  const FINAL_2 = 'DOWN';
+  const CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789#@*/·';
+
+  function hideLoader() {
+    loader.classList.add('gone');
+    setTimeout(() => { loader.style.display = 'none'; }, 700);
+    try { sessionStorage.setItem('cd-loader-v1', '1'); } catch {}
+  }
+
+  // Skip animation se già vista o reduced motion
+  if (alreadyShown || matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    w1.textContent = FINAL_1; w2.textContent = FINAL_2;
+    w2.style.color = 'var(--paper)';
+    setTimeout(hideLoader, alreadyShown ? 100 : 600);
+    return;
+  }
+
+  // Animazione: glitch chars per ~700ms, poi reveal progressivo lettera per lettera
+  const TOTAL = FINAL_1.length + FINAL_2.length;
+  const FRAME_MS = 50;        // 20fps
+  const GLITCH_FRAMES = 14;   // 700ms glitch puro
+  const REVEAL_STAGGER = 2;   // 100ms tra una lettera e l'altra (più cinematografico)
+  const TOTAL_FRAMES = GLITCH_FRAMES + TOTAL * REVEAL_STAGGER + 4;
+
+  let frame = 0;
+  function tick() {
+    const out1 = [], out2 = [];
+    for (let i = 0; i < FINAL_1.length; i++) {
+      const revealAt = GLITCH_FRAMES + i * REVEAL_STAGGER;
+      out1.push(frame >= revealAt ? FINAL_1[i] : CHARS[Math.floor(Math.random() * CHARS.length)]);
+    }
+    for (let i = 0; i < FINAL_2.length; i++) {
+      const revealAt = GLITCH_FRAMES + (FINAL_1.length + i) * REVEAL_STAGGER;
+      out2.push(frame >= revealAt ? FINAL_2[i] : CHARS[Math.floor(Math.random() * CHARS.length)]);
+    }
+    w1.textContent = out1.join('');
+    w2.textContent = out2.join('');
+    frame++;
+    if (frame < TOTAL_FRAMES) {
+      setTimeout(tick, FRAME_MS);
+    } else {
+      // Reveal blu finale su DOWN
+      w2.style.transition = 'color .5s ease';
+      w2.style.color = 'var(--paper)';
+      setTimeout(hideLoader, 700);
+    }
+  }
+  tick();
+
+  // Safety net: dopo 4s nasconde comunque
+  setTimeout(() => { if (!loader.classList.contains('gone')) hideLoader(); }, 4000);
+})();
+
+/* ============================================================
+   CONFIG & STATE
+   ============================================================ */
+const API = {
+  jolpica: 'https://api.jolpi.ca/ergast/f1',
+  openf1: 'https://api.openf1.org/v1'
+};
+
+const TEAM_COLORS = {
+  'Ferrari': '#E80020',
+  'Red Bull': '#3671C6',
+  'McLaren': '#FF8000',
+  'Mercedes': '#27F4D2',
+  'Aston Martin': '#229971',
+  'Alpine F1 Team': '#FF87BC',
+  'Alpine': '#FF87BC',
+  'Williams': '#64C4FF',
+  'RB F1 Team': '#6692FF',
+  'RB': '#6692FF',
+  'AlphaTauri': '#2B4562',
+  'Kick Sauber': '#52E252',
+  'Sauber': '#52E252',
+  'Haas F1 Team': '#B6BABD',
+  'Haas': '#B6BABD',
+  'Audi': '#000000',
+  'Cadillac': '#A40006'
+};
+
+function teamColor(name) {
+  if (!name) return '#0033FF';
+  // Match esatto prima
+  if (TEAM_COLORS[name]) return TEAM_COLORS[name];
+  // Fallback fuzzy: cerca la prima parola del key dentro il nome
+  for (const k in TEAM_COLORS) {
+    const first = k.split(' ')[0];
+    if (name.includes(first)) return TEAM_COLORS[k];
+  }
+  return '#0033FF';
+}
+
+/* simple cache helper */
+const cache = {
+  get(key, ttlMin = 30) {
+    try {
+      const raw = localStorage.getItem('cd_' + key);
+      if (!raw) return null;
+      const { t, v } = JSON.parse(raw);
+      if (Date.now() - t > ttlMin * 60 * 1000) return null;
+      return v;
+    } catch { return null; }
+  },
+  set(key, v) {
+    try { localStorage.setItem('cd_' + key, JSON.stringify({ t: Date.now(), v })); } catch {}
+  }
+};
+
+async function fetchJSON(url, ttlMin = 30) {
+  const cached = cache.get(url, ttlMin);
+  if (cached) return cached;
+  try {
+    // Promise.race: indipendente da fetch. Su iOS file:// AbortController non funziona
+    // perché il browser blocca il fetch prima di inviarlo e il segnale abort viene ignorato.
+    // Il timeout Promise qui vince comunque dopo 4s garantiti.
+    const timeout = new Promise((_, reject) =>
+      setTimeout(() => reject(new Error('timeout')), 4000)
+    );
+    const r = await Promise.race([fetch(url), timeout]);
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const data = await r.json();
+    cache.set(url, data);
+    return data;
+  } catch (e) {
+    console.warn('Fetch failed:', url, e.message);
+    return null;
+  }
+}
+
+/* ============================================================
+   CUSTOM CURSOR
+   ============================================================ */
+(() => {
+  if (matchMedia('(hover: none)').matches) return;
+  const c = document.getElementById('cursor');
+  const r = document.getElementById('cursorRing');
+  let mx = 0, my = 0, rx = 0, ry = 0;
+
+  // Colori cursore per tipo di sfondo della sezione
+  const CURSOR_COLORS = {
+    blue:  { dot: '#F2F1ED', ring: 'rgba(242,241,237,0.7)' }, // sfondo blu → cursore bianco carta
+    dark:  { dot: '#0033FF', ring: 'rgba(0,51,255,0.8)' },    // sfondo scuro → cursore blu elettrico
+    light: { dot: '#0033FF', ring: 'rgba(0,51,255,0.6)' },    // sfondo chiaro → cursore blu (default)
+  };
+
+  // Rilevamento bg: classi note + fallback per id (compat con vecchio comportamento)
+  function getBgType(clientY) {
+    const y = window.scrollY + clientY;
+    for (const el of document.querySelectorAll('section, footer')) {
+      if (y >= el.offsetTop && y < el.offsetTop + el.offsetHeight) {
+        if (el.tagName === 'FOOTER') return 'dark';
+        if (el.classList.contains('hero') || el.classList.contains('subhero')) return 'blue';
+        if (el.classList.contains('newsletter')) return 'dark';
+        return 'light';
+      }
+    }
+    return 'light';
+  }
+
+  // Memoizza l'ultimo tipo per evitare re-set inutili ad ogni mousemove
+  let lastBg = null;
+  function updateCursorColor(clientY) {
+    const type = getBgType(clientY);
+    if (type === lastBg) return;
+    lastBg = type;
+    const col = CURSOR_COLORS[type];
+    c.style.background = col.dot;
+    r.style.borderColor = col.ring;
+  }
+
+  document.addEventListener('mousemove', e => {
+    mx = e.clientX; my = e.clientY;
+    c.style.transform = `translate(${mx}px, ${my}px) translate(-50%, -50%)`;
+    updateCursorColor(my);
+  });
+
+  function tick() {
+    rx += (mx - rx) * 0.18;
+    ry += (my - ry) * 0.18;
+    r.style.transform = `translate(${rx}px, ${ry}px) translate(-50%, -50%)`;
+    requestAnimationFrame(tick);
+  }
+  tick();
+
+  window.bindCursorHover = function bindCursorHover(root) {
+    (root || document).querySelectorAll('a, button, .feat-card, .ig-post, .cal-row, .st-row, .tab, .see-all').forEach(el => {
+      if (el.dataset.cursorBound) return;
+      el.dataset.cursorBound = '1';
+      el.addEventListener('mouseenter', () => c.classList.add('hover'));
+      el.addEventListener('mouseleave', () => c.classList.remove('hover'));
+    });
+  };
+  window.bindCursorHover();
+})();
+
+/* ============================================================
+   MOBILE NAV
+   ============================================================ */
+(() => {
+  const btn = document.getElementById('navToggle');
+  const drawer = document.getElementById('navDrawer');
+  btn?.addEventListener('click', () => drawer.classList.toggle('open'));
+  drawer.querySelectorAll('a').forEach(a => a.addEventListener('click', () => drawer.classList.remove('open')));
+})();
+
+/* ============================================================
+   COUNTDOWN — fetch next race, compute next session
+   ============================================================ */
+function fmtSessionLabel(key) {
+  return ({
+    FirstPractice: 'Prove Libere 1',
+    SecondPractice: 'Prove Libere 2',
+    ThirdPractice: 'Prove Libere 3',
+    Qualifying: 'Qualifiche',
+    Sprint: 'Sprint',
+    SprintQualifying: 'Sprint Qualifying',
+    Race: 'Gran Premio'
+  })[key] || key;
+}
+
+function getNextSession(race) {
+  const now = Date.now();
+  const sessions = [];
+  ['FirstPractice', 'SecondPractice', 'ThirdPractice', 'SprintQualifying', 'Sprint', 'Qualifying'].forEach(k => {
+    if (race[k]?.date) {
+      const dt = Date.parse(race[k].date + 'T' + (race[k].time || '13:00:00Z'));
+      sessions.push({ key: k, label: fmtSessionLabel(k), dt });
+    }
+  });
+  if (race.date) {
+    const dt = Date.parse(race.date + 'T' + (race.time || '13:00:00Z'));
+    sessions.push({ key: 'Race', label: fmtSessionLabel('Race'), dt });
+  }
+  sessions.sort((a, b) => a.dt - b.dt);
+  return sessions.find(s => s.dt > now) || sessions[sessions.length - 1];
+}
+
+let countdownTarget = null;
+function startCountdown() {
+  // Cache dei riferimenti DOM: evita 4 getElementById ogni secondo
+  const elD = document.getElementById('cdD');
+  const elH = document.getElementById('cdH');
+  const elM = document.getElementById('cdM');
+  const elS = document.getElementById('cdS');
+  function tick() {
+    if (!countdownTarget) return;
+    const diff = Math.max(0, countdownTarget - Date.now());
+    elD.textContent = String(Math.floor(diff / 86400000)).padStart(2, '0');
+    elH.textContent = String(Math.floor(diff / 3600000) % 24).padStart(2, '0');
+    elM.textContent = String(Math.floor(diff / 60000) % 60).padStart(2, '0');
+    elS.textContent = String(Math.floor(diff / 1000) % 60).padStart(2, '0');
+  }
+  setInterval(tick, 1000);
+  tick();
+}
+startCountdown();
+
+async function loadNextRace() {
+  const data = await fetchJSON(`${API.jolpica}/current/next.json`, 60);
+  const race = data?.MRData?.RaceTable?.Races?.[0];
+  if (!race) {
+    document.getElementById('cdSession').textContent = 'Dati non disponibili';
+    return;
+  }
+  const elRC = document.getElementById('roundCurrent');
+  if (elRC) elRC.textContent = String(race.round).padStart(2, '0');
+  const next = getNextSession(race);
+  if (next) {
+    countdownTarget = next.dt;
+    document.getElementById('cdSession').textContent = `${next.label} · Round ${race.round}`;
+    document.getElementById('cdWhere').textContent = `${race.raceName} · ${race.Circuit?.circuitName || ''}`;
+    // Weather forecast for next session
+    const lat = race.Circuit?.Location?.lat;
+    const lng = race.Circuit?.Location?.long;
+    if (lat && lng) loadWeather(parseFloat(lat), parseFloat(lng), next.dt);
+  }
+}
+loadNextRace();
+
+/* ============================================================
+   WEATHER — Open-Meteo (free, no API key)
+   Forecast at the next session's start time and location.
+   ============================================================ */
+const WX_ICONS = {
+  sun: `<svg viewBox="0 0 44 44" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+    <g class="wx-sun-rays">
+      <line x1="22" y1="4" x2="22" y2="9"/>
+      <line x1="22" y1="35" x2="22" y2="40"/>
+      <line x1="4" y1="22" x2="9" y2="22"/>
+      <line x1="35" y1="22" x2="40" y2="22"/>
+      <line x1="9.3" y1="9.3" x2="12.8" y2="12.8"/>
+      <line x1="31.2" y1="31.2" x2="34.7" y2="34.7"/>
+      <line x1="9.3" y1="34.7" x2="12.8" y2="31.2"/>
+      <line x1="31.2" y1="12.8" x2="34.7" y2="9.3"/>
+    </g>
+    <circle cx="22" cy="22" r="7" fill="currentColor" fill-opacity="0.15"/>
+  </svg>`,
+  partly: `<svg viewBox="0 0 44 44" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <g class="wx-sun-rays" transform="translate(-3 -2)">
+      <line x1="16" y1="3" x2="16" y2="6.5"/>
+      <line x1="4" y1="15" x2="7.5" y2="15"/>
+      <line x1="7.5" y1="6.5" x2="10" y2="9"/>
+      <line x1="22" y1="6.5" x2="24.5" y2="9"/>
+    </g>
+    <circle cx="13" cy="13" r="5" fill="currentColor" fill-opacity="0.15"/>
+    <path d="M14 28 a6 6 0 0 1 12 0 h2 a4 4 0 0 1 0 8 h-16 a4 4 0 0 1 0 -8 a6 6 0 0 1 6 -6" fill="currentColor" fill-opacity="0.18"/>
+  </svg>`,
+  cloud: `<svg viewBox="0 0 44 44" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M14 22 a6 6 0 0 1 12 0 h2 a5 5 0 0 1 0 10 h-18 a5 5 0 0 1 0 -10 a6 6 0 0 1 6 -6" fill="currentColor" fill-opacity="0.18"/>
+  </svg>`,
+  rain: `<svg viewBox="0 0 44 44" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M14 17 a6 6 0 0 1 12 0 h2 a5 5 0 0 1 0 10 h-18 a5 5 0 0 1 0 -10 a6 6 0 0 1 6 -6" fill="currentColor" fill-opacity="0.18"/>
+    <line class="wx-rain-drop" x1="14" y1="32" x2="12" y2="38"/>
+    <line class="wx-rain-drop" x1="22" y1="32" x2="20" y2="38"/>
+    <line class="wx-rain-drop" x1="30" y1="32" x2="28" y2="38"/>
+  </svg>`,
+  thunder: `<svg viewBox="0 0 44 44" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M14 17 a6 6 0 0 1 12 0 h2 a5 5 0 0 1 0 10 h-18 a5 5 0 0 1 0 -10 a6 6 0 0 1 6 -6" fill="currentColor" fill-opacity="0.18"/>
+    <polygon class="wx-thunder" points="22,28 17,36 21,36 19,42 26,33 22,33" fill="currentColor"/>
+  </svg>`,
+  snow: `<svg viewBox="0 0 44 44" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M14 17 a6 6 0 0 1 12 0 h2 a5 5 0 0 1 0 10 h-18 a5 5 0 0 1 0 -10 a6 6 0 0 1 6 -6" fill="currentColor" fill-opacity="0.18"/>
+    <g stroke-width="1.5">
+      <line x1="14" y1="34" x2="14" y2="40"/>
+      <line x1="11.5" y1="35.5" x2="16.5" y2="38.5"/>
+      <line x1="16.5" y1="35.5" x2="11.5" y2="38.5"/>
+      <line x1="30" y1="34" x2="30" y2="40"/>
+      <line x1="27.5" y1="35.5" x2="32.5" y2="38.5"/>
+      <line x1="32.5" y1="35.5" x2="27.5" y2="38.5"/>
+    </g>
+  </svg>`,
+  fog: `<svg viewBox="0 0 44 44" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+    <line x1="6" y1="16" x2="38" y2="16" stroke-opacity="0.7"/>
+    <line x1="10" y1="22" x2="34" y2="22"/>
+    <line x1="6" y1="28" x2="38" y2="28" stroke-opacity="0.7"/>
+    <line x1="12" y1="34" x2="32" y2="34" stroke-opacity="0.5"/>
+  </svg>`
+};
+
+function wxIconKey(code) {
+  if (code === 0) return 'sun';
+  if (code === 1 || code === 2) return 'partly';
+  if (code === 3) return 'cloud';
+  if (code === 45 || code === 48) return 'fog';
+  if ((code >= 51 && code <= 67) || (code >= 80 && code <= 82)) return 'rain';
+  if ((code >= 71 && code <= 77) || code === 85 || code === 86) return 'snow';
+  if (code >= 95 && code <= 99) return 'thunder';
+  return 'cloud';
+}
+
+function wxLabel(code) {
+  const map = {
+    0: 'Sereno', 1: 'Quasi sereno', 2: 'Parz. nuvoloso', 3: 'Nuvoloso',
+    45: 'Nebbia', 48: 'Nebbia gelata',
+    51: 'Pioviggine lieve', 53: 'Pioviggine', 55: 'Pioviggine forte',
+    56: 'Pioviggine gelata', 57: 'Pioviggine gelata',
+    61: 'Pioggia lieve', 63: 'Pioggia', 65: 'Pioggia forte',
+    66: 'Pioggia gelata', 67: 'Pioggia gelata',
+    71: 'Neve lieve', 73: 'Neve', 75: 'Neve forte', 77: 'Granuli neve',
+    80: 'Rovesci lievi', 81: 'Rovesci', 82: 'Rovesci forti',
+    85: 'Neve a rovesci', 86: 'Neve a rovesci',
+    95: 'Temporale', 96: 'Temporale grandine', 99: 'Temporale forte'
+  };
+  return map[code] || '—';
+}
+
+async function loadWeather(lat, lng, sessionDt) {
+  const iconEl = document.getElementById('cdWxIcon');
+  if (!iconEl) return;
+  // Forecast endpoint includes hourly data 7 days ahead by default
+  const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}` +
+    `&hourly=temperature_2m,weather_code,wind_speed_10m,precipitation_probability` +
+    `&timezone=UTC&forecast_days=7`;
+  const data = await fetchJSON(url, 60);
+  if (!data?.hourly?.time) return;
+
+  // Find the hourly slot closest to the session datetime
+  const times = data.hourly.time;
+  const target = sessionDt;
+  let idx = 0, best = Infinity;
+  for (let i = 0; i < times.length; i++) {
+    const dt = Date.parse(times[i] + 'Z');
+    const diff = Math.abs(dt - target);
+    if (diff < best) { best = diff; idx = i; }
+  }
+  // If session is more than 7 days away, Open-Meteo can't give forecast
+  if (best > 86400000 * 8) {
+    document.getElementById('cdWxCond').textContent = 'Non disponibile';
+    return;
+  }
+
+  const code = data.hourly.weather_code[idx];
+  const temp = data.hourly.temperature_2m[idx];
+  const wind = data.hourly.wind_speed_10m[idx];
+  const rain = data.hourly.precipitation_probability?.[idx] ?? 0;
+
+  iconEl.innerHTML = WX_ICONS[wxIconKey(code)];
+  document.getElementById('cdWxTemp').textContent = Math.round(temp);
+  document.getElementById('cdWxCond').textContent = wxLabel(code);
+  document.getElementById('cdWxWind').textContent = Math.round(wind);
+  document.getElementById('cdWxRain').textContent = Math.round(rain);
+}
+
+/* ============================================================
+   LAST RACE — popola solo il box mini nell'hero
+   ============================================================ */
+async function loadLastRace() {
+  // fetch parallelo: risultati gara + qualifying (per la pole)
+  const [resultsData, qualiData] = await Promise.all([
+    fetchJSON(`${API.jolpica}/current/last/results.json`, 60),
+    fetchJSON(`${API.jolpica}/current/last/qualifying.json`, 60)
+  ]);
+  const race = resultsData?.MRData?.RaceTable?.Races?.[0];
+  if (!race) {
+    // Fallback: connessione assente
+    const t = document.getElementById('lrTrack');
+    if (t) t.textContent = '—';
+    return;
+  }
+
+  // ===== HERO BOX (mini) =====
+  document.getElementById('lrTrack').textContent = race.raceName.replace('Grand Prix', 'GP').replace('Gran Premio', 'GP');
+  document.getElementById('lrCircuit').textContent =
+    `${race.Circuit?.circuitName || ''} · ${race.Circuit?.Location?.country || ''}`;
+  document.getElementById('lrRound').textContent = String(race.round).padStart(2, '0');
+
+  // Data formattata
+  if (race.date) {
+    const d = new Date(race.date);
+    document.getElementById('lrDate').textContent = d.toLocaleDateString('it-IT', {
+      day: '2-digit', month: 'short', year: '2-digit'
+    });
+  }
+
+  // Podio nell'hero con team color, nome, tempo
+  const podiumEl = document.getElementById('lrPodium');
+  podiumEl.innerHTML = '';
+  (race.Results || []).slice(0, 3).forEach((r, i) => {
+    const teamName = r.Constructor.name;
+    const tColor = teamColor(teamName);
+    // Tempo: P1 = tempo totale, P2/P3 = gap
+    let timeStr = '—';
+    if (i === 0 && r.Time?.time) timeStr = r.Time.time;
+    else if (r.Time?.time) timeStr = '+' + r.Time.time.replace(/^\+/, '');
+    else if (r.status && r.status !== 'Finished') timeStr = r.status;
+
+    const div = document.createElement('div');
+    div.className = 'podium-pos';
+    div.style.setProperty('--team-c', tColor);
+    div.innerHTML = `
+      <span class="p-num">${i + 1}</span>
+      <span class="p-line"></span>
+      <span class="p-name">${r.Driver.givenName.charAt(0)}. ${r.Driver.familyName}</span>
+      <span class="p-team">${teamName}</span>
+      <span class="p-time">${timeStr}</span>
+    `;
+    podiumEl.appendChild(div);
+  });
+
+  // Fastest lap (dai risultati) → hero
+  let fl = null;
+  (race.Results || []).forEach(r => {
+    if (r.FastestLap && (!fl || +r.FastestLap.rank < +fl.FastestLap.rank)) fl = r;
+  });
+  if (fl) {
+    const flStr = `${fl.Driver.familyName.substring(0, 3).toUpperCase()} · ${fl.FastestLap.Time?.time || '—'}`;
+    document.getElementById('lrFastest').textContent = flStr;
+  }
+
+  // Pole position dal qualifying → hero
+  const qRace = qualiData?.MRData?.RaceTable?.Races?.[0];
+  const pole = qRace?.QualifyingResults?.[0];
+  if (pole) {
+    const poleStr = `${pole.Driver.familyName.substring(0, 3).toUpperCase()} · ${pole.Q3 || pole.Q2 || pole.Q1 || '—'}`;
+    document.getElementById('lrPole').textContent = poleStr;
+  }
+}
+loadLastRace();
+
+/* ============================================================
+   CALENDAR — homepage: only 3 GPs (last done, next, after next)
+   ============================================================ */
+async function loadCalendar() {
+  const data = await fetchJSON(`${API.jolpica}/current.json`, 240);
+  const races = data?.MRData?.RaceTable?.Races || [];
+  const elRT = document.getElementById('roundTotal');
+  if (elRT) elRT.textContent = String(races.length || 24).padStart(2, '0');
+
+  const list = document.getElementById('calendarList');
+  list.innerHTML = '';
+
+  if (!races.length) {
+    list.innerHTML = '<div style="padding:2rem 0;color:var(--mid);font-size:0.78rem;letter-spacing:1px;line-height:1.6;">Connessione richiesta per caricare il calendario.<br/>Apri il file da un server locale o da internet.</div>';
+    return;
+  }
+
+  const now = Date.now();
+  // index of next upcoming race
+  let nextIdx = races.findIndex(r => Date.parse(r.date + 'T' + (r.time || '13:00:00Z')) > now);
+  if (nextIdx === -1) nextIdx = races.length - 1; // season ended → last race
+  // Slice: [last done, next, after next]
+  const prevIdx = Math.max(0, nextIdx - 1);
+  const afterIdx = Math.min(races.length - 1, nextIdx + 1);
+  // Use a Set to avoid duplicates at season start/end
+  const indices = [...new Set([prevIdx, nextIdx, afterIdx])];
+  const subset = indices.map(i => ({ race: races[i], idx: i }));
+
+  subset.forEach(({ race: r, idx }) => {
+    const dt = Date.parse(r.date + 'T' + (r.time || '13:00:00Z'));
+    let status, cls;
+    // GP weekend = "live" da ~60h prima dello start (giovedì sera UTC) a +5h dopo.
+    // Stessa logica usata in calendario.html: copre FP1 → fine gara, anche con Sprint.
+    const weekendStart = dt - 3600000 * 60;
+    const weekendEnd = dt + 3600000 * 5;
+    if (now >= weekendStart && now <= weekendEnd) { status = 'live'; cls = 'is-live'; }
+    else if (idx < nextIdx) { status = 'done'; cls = 'is-done'; }
+    else if (idx === nextIdx) { status = 'next'; cls = 'is-next'; }
+    else { status = 'upcoming'; cls = ''; }
+
+    const row = document.createElement('div');
+    row.className = 'cal-row ' + cls;
+    const d = new Date(dt);
+    const date = d.toLocaleDateString('it-IT', { day: '2-digit', month: 'short' });
+
+    row.innerHTML = `
+      <div class="cal-round">${String(r.round).padStart(2, '0')}</div>
+      <div>
+        <div class="cal-name">${r.raceName.replace('Grand Prix', 'GP').replace('Gran Premio', 'GP')}</div>
+        <div class="cal-circuit">${r.Circuit?.circuitName || ''} · ${r.Circuit?.Location?.country || ''}</div>
+      </div>
+      <div class="cal-circuit">${r.Circuit?.Location?.country || ''}</div>
+      <div class="cal-date">${date}</div>
+      <div class="cal-status ${status}">${status === 'done' ? 'Concluso' : status === 'live' ? '· Live ·' : status === 'next' ? 'Prossimo' : 'In arrivo'}</div>
+    `;
+    list.appendChild(row);
+  });
+  if (window.bindCursorHover) window.bindCursorHover(list);
+}
+loadCalendar();
+
+/* ============================================================
+   STANDINGS — drivers + constructors with tabs
+   ============================================================ */
+let driverStandings = [], constructorStandings = [];
+
+async function loadStandings() {
+  const [d, c] = await Promise.all([
+    fetchJSON(`${API.jolpica}/current/driverStandings.json`, 60),
+    fetchJSON(`${API.jolpica}/current/constructorStandings.json`, 60)
+  ]);
+  driverStandings = d?.MRData?.StandingsTable?.StandingsLists?.[0]?.DriverStandings || [];
+  constructorStandings = c?.MRData?.StandingsTable?.StandingsLists?.[0]?.ConstructorStandings || [];
+  renderStandings('drivers');
+}
+
+function renderStandings(type) {
+  const list = document.getElementById('standingsList');
+  list.innerHTML = '';
+  const data = type === 'drivers' ? driverStandings : constructorStandings;
+  if (!data.length) {
+    list.innerHTML = `<div style="padding:2rem 0;color:var(--mid);font-size:0.78rem;letter-spacing:1px;line-height:1.6;">Connessione richiesta per caricare la classifica.</div>`;
+    return;
+  }
+  const max = +data[0].points || 1;
+  data.slice(0, 11).forEach((s, i) => {
+    const row = document.createElement('div');
+    row.className = 'st-row';
+    const pct = ((+s.points) / max) * 100;
+    let name, team, colorKey;
+    if (type === 'drivers') {
+      name = `${s.Driver.givenName.charAt(0)}. ${s.Driver.familyName}`;
+      team = s.Constructors[0]?.name || '—';
+      colorKey = team;
+    } else {
+      name = s.Constructor.name;
+      team = `${s.wins || 0} vittorie`;
+      colorKey = s.Constructor.name;
+    }
+    row.innerHTML = `
+      <div class="st-pos${i < 3 ? ' top' : ''}">${String(i + 1).padStart(2, '0')}</div>
+      <div>
+        <div class="st-name">${name}</div>
+        <div class="st-team"><span class="st-team-dot" style="background:${teamColor(colorKey)}"></span>${team}</div>
+      </div>
+      <div class="st-bar"><div class="st-bar-fill" style="width:0"></div></div>
+      <div>
+        <div class="st-pts">${s.points}</div>
+        <div class="st-pts-l">punti</div>
+      </div>
+    `;
+    list.appendChild(row);
+    setTimeout(() => {
+      const fill = row.querySelector('.st-bar-fill');
+      if (fill) fill.style.width = pct + '%';
+    }, 100 + i * 60);
+  });
+  if (window.bindCursorHover) window.bindCursorHover(list);
+}
+
+document.querySelectorAll('.tab').forEach(t => {
+  t.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
+    t.classList.add('active');
+    renderStandings(t.dataset.tab);
+  });
+});
+
+loadStandings();
+
+/* ============================================================
+   MINI STATS (sotto Mondiale 2026): 4 box estratti dai dati esistenti.
+   ============================================================ */
+async function loadMiniStats() {
+  const $ = id => document.getElementById(id);
+  const elPS = $('msPitstop'), elPSs = $('msPitstopSub');
+  const elW = $('msWins'), elWs = $('msWinsSub');
+  const elG = $('msGap'), elGs = $('msGapSub');
+  const elT = $('msTeam'), elTs = $('msTeamSub');
+  if (!elPS) return;
+
+  // 1. Vittorie leader + distacco P1-P2 (driverStandings da Jolpica)
+  try {
+    if (driverStandings.length >= 2) {
+      const p1 = driverStandings[0], p2 = driverStandings[1];
+      elW.textContent = `${p1.wins || 0}`;
+      elWs.textContent = `${p1.Driver.familyName.toUpperCase()} · ${p1.Constructors?.[0]?.name || '—'}`;
+      const gap = Math.abs((Number(p1.points)||0) - (Number(p2.points)||0));
+      elG.textContent = `+${gap}`;
+      elGs.textContent = `${p1.Driver.familyName} → ${p2.Driver.familyName}`;
+    } else if (driverStandings.length === 1) {
+      const p1 = driverStandings[0];
+      elW.textContent = `${p1.wins || 0}`;
+      elWs.textContent = `${p1.Driver.familyName.toUpperCase()}`;
+      elG.textContent = '—';
+      elGs.textContent = 'Solo P1 disponibile';
+    } else {
+      elW.textContent = '—';
+      elWs.textContent = 'In attesa dati';
+      elG.textContent = '—';
+      elGs.textContent = 'In attesa dati';
+    }
+    // 2. Costruttore in testa
+    if (constructorStandings.length >= 1) {
+      const t1 = constructorStandings[0];
+      elT.textContent = (t1.Constructor?.name || '—').toUpperCase();
+      elTs.textContent = `${t1.points || 0} punti`;
+    } else {
+      elT.textContent = '—';
+      elTs.textContent = 'In attesa dati';
+    }
+  } catch (e) { /* tolerated */ }
+
+  // 3. Pitstop più veloce: Jolpica (più affidabile per dati pit ufficiali)
+  try {
+    const [pitData, resData] = await Promise.all([
+      fetchJSON('https://api.jolpi.ca/ergast/f1/current/last/pitstops.json?limit=100', 240),
+      fetchJSON('https://api.jolpi.ca/ergast/f1/current/last/results.json', 240)
+    ]);
+    const race = pitData?.MRData?.RaceTable?.Races?.[0];
+    const pits = race?.PitStops || [];
+    if (pits.length) {
+      // Trova il pit più veloce (durata minima)
+      const valid = pits
+        .map(p => ({ ...p, dur: parseFloat(p.duration) }))
+        .filter(p => p.dur > 0 && p.dur < 60);
+      if (valid.length) {
+        valid.sort((a, b) => a.dur - b.dur);
+        const best = valid[0];
+        elPS.textContent = `${best.dur.toFixed(2)}s`;
+        // Mappa driverId → team dalla classifica gara
+        const results = resData?.MRData?.RaceTable?.Races?.[0]?.Results || [];
+        const driver = results.find(r => r.Driver?.driverId === best.driverId);
+        const teamName = driver?.Constructor?.name || best.driverId;
+        const gpName = race.raceName?.replace(' Grand Prix', ' GP') || '';
+        elPSs.textContent = `${teamName.toUpperCase()} · ${gpName}`;
+      } else {
+        elPS.textContent = '—';
+        elPSs.textContent = 'In attesa dati';
+      }
+    } else {
+      elPS.textContent = '—';
+      elPSs.textContent = 'Nessun pit stop registrato';
+    }
+  } catch (e) {
+    console.warn('pit fail', e);
+    elPS.textContent = '—';
+    elPSs.textContent = 'Dati non disponibili';
+  }
+}
+// chiamata DOPO loadStandings così le globali sono popolate
+setTimeout(loadMiniStats, 2000);
+
+/* ============================================================
+   SESSION STATUS — pallino dentro al countdown box.
+   3 stati: idle (grigio, default) / soon (giallo, <48h) / live (rosso, in corso)
+   ============================================================ */
+async function updateSessionStatus() {
+  const badge = document.getElementById('sessionBadge');
+  const dot = document.getElementById('sessionDot');
+  const lbl = document.getElementById('sessionLbl');
+  if (!badge || !dot || !lbl) return;
+
+  let sessions = null;
+  try { sessions = await fetchJSON(`${API.openf1}/sessions?session_key=latest`, 5); } catch {}
+  const session = sessions?.[0];
+
+  let state = 'idle';
+  let text = 'Prossima sessione';
+  if (session) {
+    const start = Date.parse(session.date_start);
+    const end = Date.parse(session.date_end);
+    const now = Date.now();
+    if (now >= start && now <= end) {
+      state = 'live';
+      text = 'Live';
+    }
+  }
+  badge.dataset.state = state;
+  dot.className = `session-dot ${state}`;
+  lbl.textContent = text;
+}
+updateSessionStatus();
+setInterval(updateSessionStatus, 60000);
+
+/* ============================================================
+   NEWSLETTER
+   ============================================================ */
+document.getElementById('nlForm').addEventListener('submit', (e) => {
+  e.preventDefault();
+  const email = document.getElementById('nlEmail').value;
+  if (!email) return;
+  const btn = e.target.querySelector('.nl-submit');
+  btn.textContent = '✓ Iscritto';
+  btn.style.background = 'var(--green)';
+  setTimeout(() => {
+    btn.textContent = 'Iscrivimi →';
+    btn.style.background = '';
+    e.target.reset();
+  }, 2400);
+});
+
+/* ============================================================
+   ARTICOLI DAL CMS — helpers + modal + render
+   ============================================================ */
+function parseFrontmatter(md) {
+  const m = md.match(/^---\n([\s\S]*?)\n---\n?([\s\S]*)$/);
+  if (!m) return null;
+  const fm = {};
+  m[1].split('\n').forEach(line => {
+    const i = line.indexOf(':');
+    if (i < 0) return;
+    const k = line.slice(0, i).trim();
+    const v = line.slice(i + 1).trim().replace(/^["']|["']$/g, '');
+    if (k) fm[k] = v;
+  });
+  fm.body = m[2].trim();
+  return fm;
+}
+
+function escapeHTML(s) {
+  return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function formatDate(iso) {
+  const d = new Date(iso);
+  if (isNaN(d)) return escapeHTML(iso);
+  return `${String(d.getDate()).padStart(2,'0')}.${String(d.getMonth()+1).padStart(2,'0')}.${String(d.getFullYear()).slice(-2)}`;
+}
+
+function renderFeatCard(a, isFeatured, isFallback) {
+  let cover = '';
+  if (isFeatured) {
+    if (a.cover) {
+      const safeUrl = String(a.cover).replace(/['"\\<>]/g, '');
+      cover = `<div class="feat-cover has-cover" style="background-image:url('${safeUrl}')"></div>`;
+    } else {
+      const variant = ['ac-v0','ac-v1','ac-v2'].includes(a.variant) ? a.variant : 'ac-v0';
+      cover = `<div class="feat-cover ${variant}"></div>`;
+    }
+  }
+  const inner = `
+      <div class="feat-cat">${escapeHTML(a.tag || '—')}${a.read ? ' · ' + escapeHTML(a.read) : ''}</div>
+      ${cover}
+      <h3 class="feat-title">${escapeHTML(a.title)}</h3>
+      <p class="feat-excerpt">${escapeHTML(a.excerpt)}</p>
+      <div class="feat-meta"><span>${formatDate(a.date)}</span><span>→</span></div>
+  `;
+  // Articoli CMS: link a pagina vera. Fallback: div non cliccabile.
+  if (!isFallback && a.slug) {
+    return `<a class="feat-card ${isFeatured ? 'feat-card--big' : ''}" href="articoli/${encodeURIComponent(a.slug)}.html">${inner}</a>`;
+  }
+  return `<div class="feat-card feat-card--fallback ${isFeatured ? 'feat-card--big' : ''}" aria-disabled="true">${inner}</div>`;
+}
+
+/* ============================================================
+   FALLBACK ARTICLES — Si usano se il CMS è vuoto/offline.
+   2 articoli per ognuna delle 7 categorie (14 totali).
+   ⚠️ Se modifichi questi articoli, modifica anche la stessa
+   costante in articoli.html (è duplicata per resilienza).
+   ============================================================ */
+const FALLBACK_ARTICLES = [
+  { title: "Perché Ferrari ha cambiato passo a Imola", tag: "Analisi", date: "2026-05-12", read: "6 min", variant: "ac-v0",
+    excerpt: "Tre indizi tecnici dal weekend di Imola che spiegano il rilancio del Cavallino: aero pack, mappature ERS e gestione gomme.",
+    body: `Il rilancio Ferrari inizia dalla pancia. Le pance laterali della SF-26 mostrate a Imola sono più aggressive nella zona di estrazione: il flusso che attraversa l'undercut viene canalizzato in modo più diretto verso l'effetto suolo, sacrificando qualcosa in alta velocità per guadagnare nelle curve di media percorrenza.
+
+## Mappature ERS
+
+Il secondo indizio è meno visibile. Le radio di Leclerc durante le qualifiche hanno tradito un cambio di approccio: ricariche più aggressive in frenata, scariche concentrate sui tratti dove il motore Ferrari soffre meno il drag.
+
+## La vera notizia: le gomme
+
+L'aspetto più interessante riguarda la finestra di lavoro. Per la prima volta in tre anni, Ferrari è riuscita a far funzionare le hard nella seconda metà del run senza compromettere la prima. Una vittoria che vale più del podio di Imola: vale tutto il resto della stagione.` },
+
+  { title: "Il dilemma di Charles Leclerc", tag: "Long-form", date: "2026-05-10", read: "14 min", variant: "ac-v1",
+    excerpt: "Quattro anni di Ferrari, due opportunità mancate e una domanda: vincere a Maranello è ancora possibile? Reportage dal paddock.",
+    body: `Chi parla con Charles oggi descrive un pilota diverso. Più freddo, più chirurgico, meno emotivo nelle radio. La maturità di chi ha perso troppe volte per credere ancora alle promesse.
+
+## Il peso del cognome
+
+A Maranello, il nome Leclerc pesa diversamente da quello degli altri piloti. Charles non è arrivato in Ferrari per caso: è figlio dell'Academy, è il prodotto di anni di investimenti, è il pilota che doveva riportare il titolo a casa. Ed è qui da quando aveva 21 anni.
+
+## Il 2022 che non torna
+
+Il 2022 è stato l'anno in cui la storia poteva cambiare. Il F1-75 era veloce, Charles era veloce, e per nove gare Ferrari ha guidato il mondiale. Poi: strategia di Monaco, motore di Baku, errore di Imola. Tre eventi in tre mesi che hanno definito una carriera.
+
+## Cosa cambia adesso
+
+Il contratto fino al 2028 è un voto di fiducia. Ma anche un ultimatum. Se il 2026 non sarà l'anno buono, sarà difficile chiedergli un'altra stagione di pazienza. La finestra si stringe, e Charles lo sa.` },
+
+  { title: "Aero 2026: il regolamento spiegato", tag: "Tech", date: "2026-05-06", read: "11 min", variant: "ac-v2",
+    excerpt: "Una guida completa al nuovo regolamento tecnico: ali attive, fondi rivisti, riduzione del drag e gestione del DRS.",
+    body: `Il regolamento 2026 è la riforma più radicale dal 2014. Cambia tutto: motori, telai, aerodinamica. Vediamo come.
+
+## Ali attive
+
+La novità più visibile sono le ali mobili. Sia anteriore che posteriore avranno una modalità "low-drag" attivabile dal pilota in rettilineo, e una modalità "high-downforce" in curva. Il DRS classico sparisce: ora il sistema è disponibile sempre, gestito automaticamente.
+
+## Fondi rivisti
+
+L'effetto suolo introdotto nel 2022 viene ridimensionato. I tunnel Venturi sono meno aggressivi, il fondo è rialzato di 30 mm, e l'altezza minima da terra viene controllata da sensori. Obiettivo: ridurre porpoising senza perdere lo spirito del regolamento.
+
+## Motori 50/50
+
+Il punto più discusso: la suddivisione di potenza tra termico ed elettrico passa al 50/50. 470 kW da MGU-K, 470 kW dal V6. Sparisce l'MGU-H. Risultato: motori più semplici, più costosi nei consumi, ma più rilevanti per la transizione elettrica dell'industria.` },
+
+  { title: "F1 e cinema: i 10 film essenziali", tag: "Cultura", date: "2026-05-03", read: "9 min", variant: "ac-v0",
+    excerpt: "Da Grand Prix (1966) a Senna (2010), passando per Rush e Le Mans '66. La lista definitiva per appassionati e curiosi.",
+    body: `La F1 non ha mai trovato un grande film di finzione. Ha però prodotto alcuni dei migliori documentari sportivi della storia. Ecco i 10 da vedere.
+
+## I capolavori
+
+**Senna** (2010) di Asif Kapadia. Probabilmente il miglior documentario sportivo mai realizzato. Senza voce narrante, solo immagini d'archivio e interviste. Imperdibile.
+
+**Grand Prix** (1966) di John Frankenheimer. Il primo grande film di fiction. Le riprese a bordo macchina sono ancora oggi spettacolari.
+
+**Rush** (2013) di Ron Howard. La rivalità Hunt-Lauda raccontata bene. Niki ha approvato.
+
+## I sottovalutati
+
+**Steve McQueen: Le Mans** (2015). Sulla folle produzione di "Le Mans" (1971). McQueen voleva il film più realistico mai fatto. Quasi gli costò la carriera.
+
+**1: Life on the Limit** (2013). Sulla sicurezza in F1 dagli anni '60 a oggi. Drammatico ma necessario.
+
+## Da scoprire
+
+**Williams** (2017), **McLaren** (2017), **Schumacher** (2021), **Drive to Survive** (2019-presente). Ognuno racconta un pezzo di storia diverso.` },
+
+  { title: "Contro i venerdì di prove libere", tag: "Opinione", date: "2026-04-29", read: "5 min", variant: "ac-v1",
+    excerpt: "Perché eliminare FP1 e ridurre FP2 farebbe bene allo spettacolo, ai team e soprattutto agli spettatori in autodromo.",
+    body: `Il venerdì di un weekend di F1 è morto. Tre ore di prove libere in cui i team girano poco, fanno test aerodinamici noiosi, e nessuno spinge mai. Lo spettatore in tribuna paga 80 euro per vedere monoposto che escono dai box ogni 20 minuti.
+
+## Il problema
+
+Le FP1 e FP2 servono ai team per validare i dati delle simulazioni. Nel 2026, con simulatori che riproducono le piste al millimetro, gran parte di quel lavoro si fa già il mercoledì notte in fabbrica. Le sessioni del venerdì sono ridondanti.
+
+## La proposta
+
+Cancellare FP1. Tenere una sola sessione il venerdì pomeriggio, di 60 minuti. Anticipare le qualifiche al sabato mattina. Avere una sprint o una sessione esibizione il sabato pomeriggio. Domenica: gara.
+
+Risultato: meno costi per i team, più gara per gli spettatori, più contenuto narrativo per la TV. Tutti vincono. Tranne forse gli ingegneri, che dovrebbero finalmente fidarsi dei loro modelli.` },
+
+  { title: "Tutti i sorpassi del 2026 in un grafico", tag: "Data", date: "2026-04-26", read: "7 min", variant: "ac-v2",
+    excerpt: "Analisi dei dati di sorpasso gara per gara: chi sorpassa di più, su quali circuiti, e perché Monaco resta un'eccezione.",
+    body: `Nelle prime quattro gare del 2026 ci sono stati 247 sorpassi tracciati ufficialmente. Quasi 30 in più rispetto allo stesso periodo del 2025. Vediamo dove e perché.
+
+## Il top: Cina
+
+Il GP di Shanghai ha visto 78 sorpassi in gara, record dell'era ground-effect. Le ali attive introdotte nel 2026 stanno funzionando: i piloti possono seguire da vicino più a lungo, e gli scatti DRS sui rettilinei sono ancora più decisivi.
+
+## Il flop prevedibile: Monaco
+
+Solo 12 sorpassi in tutta la gara di Monaco. Niente di nuovo. La pista resta stretta, le macchine sono ancora troppo grandi (anche se nel 2026 sono leggermente più corte), e l'unico vero punto di sorpasso resta la chicane del porto.
+
+## I piloti che sorpassano di più
+
+In testa Verstappen (38 sorpassi totali), seguito da Norris (31) e Antonelli (28). Il dato sorprendente: Antonelli al primo anno completo è già nei primi tre. Talento puro o macchina migliore? Verosimilmente entrambe.` },
+
+  { title: "McLaren e la gestione gomme nel 2026", tag: "Analisi", date: "2026-04-22", read: "8 min", variant: "ac-v0",
+    excerpt: "Norris e Piastri stanno dominando la classifica grazie a un vantaggio invisibile: il degrado gomme più basso del campionato.",
+    body: `La MCL39 ha un segreto. Non è la velocità in qualifica — lì McLaren è seconda dietro Red Bull. Non è il motore — Mercedes-AMG resta una potenza media. Il vantaggio è il consumo gomme.
+
+## I numeri
+
+Nelle prime quattro gare, le McLaren hanno fermato in pit-lane in media 1,2 volte. La media degli altri top team è 1,8. Tradotto: McLaren fa meno soste, perde meno tempo, esce davanti.
+
+## Perché succede
+
+L'origine è nella sospensione anteriore. La geometria sviluppata da Sanchez e Stella riduce lo scorrimento laterale del pneumatico nelle curve veloci di media intensità. Il risultato è meno temperatura nei piazzali, meno graining, meno blistering.
+
+## Cosa rischiano
+
+Il problema arriverà su circuiti stop-and-go come Baku o Singapore. Lì il vantaggio scompare. E in qualifica, la stessa sospensione non aiuta su un giro secco. Per ora però le gare le vincono ugualmente.` },
+
+  { title: "Senna a Monaco 1988: l'ultima curva", tag: "Storia", date: "2026-04-15", read: "12 min", variant: "ac-v1",
+    excerpt: "Il giro più veloce mai visto a Monaco. Cosa successe davvero dietro le radio rosse di Honda quel sabato pomeriggio.",
+    body: `Il 14 maggio 1988, alle 14:47, Ayrton Senna girò in 1:23.998. Suo compagno di squadra Alain Prost segnò 1:25.425. Un secondo e mezzo di distacco. Sulla stessa macchina, sulla stessa pista.
+
+## La trance
+
+Senna lo raccontò molti anni dopo a uno psicologo dello sport. Disse di aver perso la sensazione di guida, di non sentire più il volante, di vedersi guidare dall'alto. Una dissociazione totale. Quando arrivò ai box, era spaventato. Non capiva cosa fosse successo.
+
+## Cosa diceva la telemetria
+
+Honda aveva installato sulla MP4/4 un sistema di telemetria primordiale. I dati di quel giro mostrano qualcosa di anomalo: nelle curve veloci, le traiettorie sono identiche giro dopo giro, al centimetro. In Anthony Noghes, Senna toccò la traiettoria perfetta per nove giri di fila. Ai limiti dell'umano.
+
+## Il fallimento del giorno dopo
+
+Domenica, Senna era in testa con 50 secondi di vantaggio. A 12 giri dalla fine, lo schianto a Portier. Errore di concentrazione, dissero. Probabilmente, il prezzo della trance del sabato.` },
+
+  { title: "Il segreto del DRS attivo: come funziona davvero", tag: "Tech", date: "2026-04-08", read: "8 min", variant: "ac-v2",
+    excerpt: "Le ali mobili 2026 spiegate senza fronzoli: cosa cambia rispetto al DRS classico, perché favorisce i sorpassi, e i limiti.",
+    body: `Il DRS che abbiamo conosciuto dal 2011 al 2025 è morto. Al suo posto: un sistema completamente diverso, che il pubblico fatica ancora a capire.
+
+## Come funziona
+
+Il pilota ha ora due modalità aerodinamiche attivabili in qualsiasi punto della pista: "low-drag" (ali quasi piatte) e "high-downforce" (ali in posizione standard). Il passaggio è gestito da un pulsante al volante, ma con un sistema di sicurezza: il computer impedisce il low-drag in curva.
+
+## Il vantaggio reale
+
+Rispetto al DRS classico, il pilota può scegliere quando guadagnare velocità. Sui rettilinei lunghi: low-drag costante. Su pista cittadina: solo nelle zone tra una curva e l'altra. Questo cambia completamente la strategia di guida e di sorpasso.
+
+## Il limite politico
+
+Il sistema però non è completamente "aperto". La FIA ha imposto un budget di attivazioni per gara — 25 cicli per evitare che diventi un'arma costante. Una scelta strana, che limita il potenziale del regolamento. Vedremo se nel 2027 cadrà.` },
+
+  { title: "1976: l'anno in cui Niki Lauda tornò dalla morte", tag: "Storia", date: "2026-04-01", read: "13 min", variant: "ac-v0",
+    excerpt: "Quarantadue giorni dopo l'incidente al Nürburgring, Lauda era a Monza in macchina. Una delle storie più impossibili dello sport.",
+    body: `Il 1° agosto 1976, Niki Lauda morì per due minuti al Nürburgring. La sua Ferrari si era schiantata contro il guardrail alla curva Bergwerk, prendendo fuoco. I piloti dietro — Lunger, Edwards, Ertl — lo tirarono fuori. Aveva ustioni di terzo grado su volto, mani e polmoni.
+
+## Il coma
+
+In ospedale a Mannheim gli somministrarono l'estrema unzione. I medici dissero alla moglie Marlene di prepararsi al peggio. Lauda era cosciente ma non riusciva a parlare. Per due settimane, l'unico modo di comunicare era stringere la mano dell'infermiera.
+
+## Il ritorno impossibile
+
+Quarantadue giorni dopo, Lauda era al Gran Premio d'Italia. Aveva ancora le bende sulla testa, sangue che colava dalle ferite non rimarginate, ma corse. Arrivò quarto. James Hunt, che gli stava dietro nel mondiale, lo definì "il gesto più coraggioso che abbia mai visto in un atleta".
+
+## Il sacrificio
+
+L'ultima gara fu in Giappone, sotto un diluvio universale. Lauda si ritirò dopo due giri. "Non rischio la vita per un secondo titolo che posso vincere l'anno dopo", disse a Enzo Ferrari. Hunt vinse il mondiale per un punto. Lauda lo vinse nel 1977. Da solo.` },
+
+  { title: "La playlist del paddock: cosa ascoltano i piloti", tag: "Cultura", date: "2026-03-25", read: "5 min", variant: "ac-v1",
+    excerpt: "Da Verstappen che ascolta techno olandese a Hamilton in studio con i produttori. Le musiche dei piloti come finestra sulla loro testa.",
+    body: `Le ore prima del via sono sacre. Ogni pilota ha la sua routine, e in quella routine c'è quasi sempre della musica. Cosa ascoltano, e perché.
+
+## Verstappen, techno e adrenalina
+
+Max è ossessionato dalla scena hardcore olandese. Angerfist, Endymion, basi a 180 BPM. Quando arrivò in F1 lo prendevano in giro, ora i suoi gusti sono diventati famosi. Dice che lo aiuta a "spegnere il cervello e accenderlo solo nel momento giusto".
+
+## Hamilton, produttore mancato
+
+Lewis è l'unico pilota che ha pubblicato una canzone (con Christina Aguilera, 2018). Ha uno studio di registrazione a casa. Nel paddock indossa cuffie da DJ. La sua playlist pre-gara include sempre Bob Marley e Stevie Wonder.
+
+## Antonelli, il classicista
+
+Sorpresa: Kimi Antonelli, 19 anni, ascolta solo musica classica prima di salire in macchina. Beethoven, soprattutto. Dice che lo "calma la mente e gli mette ordine". Curioso per un teenager.
+
+## La regola di Leclerc
+
+Charles non ascolta nulla. Silenzio totale per 30 minuti prima della gara. "Devo sentire la macchina, non posso permettermi distrazioni". Romantico come tutto in lui.` },
+
+  { title: "Il calendario a 24 gare ucciderà i piloti?", tag: "Opinione", date: "2026-03-18", read: "6 min", variant: "ac-v2",
+    excerpt: "Dal 2026 sono 24 round in un'unica stagione. È sostenibile fisicamente e mentalmente, o stiamo spingendo gli atleti oltre il limite?",
+    body: `Il calendario 2026 prevede 24 Gran Premi, sei sprint, e una pausa estiva di 28 giorni. Il resto è viaggi, ore di volo, simulazioni, debrief. Stiamo costruendo una stagione disumana?
+
+## I numeri reali
+
+Un pilota di F1 nel 2026 passerà circa 215 giorni all'anno fuori casa. Coprirà 280.000 km in aereo. Vivrà 14 cambi di fuso orario importanti. Avrà 7 settimane di pausa estiva, di cui 4 di stop totale imposto dalla FIA.
+
+## Cosa dicono i piloti
+
+Hamilton ne parla apertamente da anni. Verstappen ha detto che a 30 anni si ritirerà se il calendario continuerà a crescere. Anche Norris, 26 anni, ammette che la stanchezza accumulata gli fa già paura.
+
+## La proposta sensata
+
+Non è chiedere meno gare. Il business non lo permette. È chiedere un sistema di rotazione: ogni pilota può saltare 2 gare a stagione, sostituito dal suo terzo pilota. I tifosi vedono comunque la macchina del team che amano. I piloti riposano. Sembra logico. La FIA non ci pensa.` },
+
+  { title: "Affidabilità motori 2026: chi rischia di più", tag: "Data", date: "2026-03-10", read: "8 min", variant: "ac-v0",
+    excerpt: "Con i nuovi propulsori 50/50, l'analisi delle ore al banco e dei primi guasti reali ci dice già chi avrà problemi di affidabilità.",
+    body: `I motori 2026 sono nuovi. Davvero nuovi. Architettura V6 1.6 turbo + MGU-K potenziato + no MGU-H. Quattro nuovi fornitori, cinque generazioni di prototipi. L'affidabilità sarà il vero tema della stagione.
+
+## I dati di pre-stagione
+
+Mercedes ha accumulato 28.000 km al banco dinamometrico. Ferrari 24.000. Honda 22.000. Audi (al debutto) solo 14.000. Il motore Audi è il più innovativo e il meno testato — combinazione potenzialmente esplosiva.
+
+## I primi guasti
+
+Nelle prime quattro gare, già visti: tre rotture meccaniche Audi (cliente Sauber), due elettroniche Mercedes, una termica Honda. Ferrari per ora intatto. Significativo: tutti i guasti sui motori più stressati in qualifica, suggerendo problemi di gestione termica.
+
+## La proiezione
+
+Allocazione 2026: 3 motori per pilota per 24 gare. Significa che ogni motore deve coprire 8 gare. È stretto. Audi probabilmente non ce la farà — già si parla di penalità multiple in seconda metà di stagione. Cadillac, al debutto nel 2027, ha rinviato di un anno proprio per questo.` },
+
+  { title: "Come Adrian Newey ha cambiato la F1", tag: "Long-form", date: "2026-03-02", read: "22 min", variant: "ac-v1",
+    excerpt: "Quarant'anni di vetture vincenti, tre team trasformati, dodici titoli costruttori. La carriera del designer più importante della storia.",
+    body: `Quando Adrian Newey annunciò di lasciare Red Bull nel 2024, lo sport tremò. Non era solo la fine di un'epoca: era il vero termine di un ciclo iniziato nel 1986, quando un ingegnere ventiseienne disegnò il suo primo telaio per March.
+
+## L'inizio: March e Williams
+
+Newey non è un teorico. Disegna a matita, su carta, e ha sempre rifiutato i software CAD per il primo concept. La sua FW14 (Williams 1991) fu la prima monoposto al mondo dominata dall'aerodinamica come priorità assoluta. Tutto il resto seguiva.
+
+## McLaren e il salto
+
+Negli anni 2000 in McLaren, Newey introdusse l'idea che la sospensione è un'estensione dell'aerodinamica. La MP4-20 del 2005 era una macchina rivoluzionaria, troppo fragile per vincere il titolo ma capace di pole position seriali.
+
+## Red Bull: il dominio
+
+Dal 2010 al 2013, quattro titoli consecutivi con Vettel. Poi il rinascimento del 2022 con Verstappen. La sua RB18 fu il prodotto della migliore interpretazione del regolamento ground-effect. Nessuno capì l'estrazione del flusso sotto la macchina come la sua squadra.
+
+## L'eredità
+
+Newey oggi è in Aston Martin. La AMR26 ha la sua firma — pance estreme, sospensione anteriore push-rod, fondo a "spina di pesce". Funzionerà? Probabilmente sì, perché funziona sempre. Cambia squadra, cambia regolamento, ma la fisica resta la stessa. E Newey la parla come pochi.` }
+];
+
+/* ============================================================
+   LOAD ARTICLES — Strategia: mostra fallback SUBITO, poi
+   prova a sostituire con il CMS se ha articoli reali.
+   ============================================================ */
+function slugFromFilename(name) {
+  return String(name)
+    .replace(/\.md$/, '')
+    .replace(/^\d{4}-\d{2}-\d{2}-/, '')
+    .toLowerCase()
+    .replace(/[àáâãä]/g, 'a').replace(/[èéêë]/g, 'e')
+    .replace(/[ìíîï]/g, 'i').replace(/[òóôõö]/g, 'o')
+    .replace(/[ùúûü]/g, 'u').replace(/[ç]/g, 'c').replace(/[ñ]/g, 'n')
+    .replace(/[^a-z0-9-]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 80);
+}
+
+function renderArticlesList(articles, total, isFallback) {
+  const grid = document.getElementById('articlesGrid');
+  if (grid) {
+    grid.innerHTML = articles.map((a, i) => renderFeatCard(a, i === 0, isFallback)).join('');
+    if (window.bindCursorHover) window.bindCursorHover(grid);
+  }
+  const counter = document.getElementById('articlesCounter');
+  if (counter) {
+    counter.textContent = `${String(articles.length).padStart(3,'0')} / ${String(total).padStart(3,'0')} · Edition 01`;
+  }
+}
+
+async function loadCMSArticles() {
+  // 1. SUBITO: mostra i fallback (visibilità immediata)
+  renderArticlesList(FALLBACK_ARTICLES.slice(0, 5), FALLBACK_ARTICLES.length, true);
+
+  // 2. ASYNC: prova a sostituire con il CMS se disponibile
+  const REPO = 'diamantifugazi/CoolDown.f1';
+  try {
+    const list = await fetchJSON(`https://api.github.com/repos/${REPO}/contents/content/articles`, 1);
+    if (!Array.isArray(list) || !list.length) return;
+
+    const mdFiles = list
+      .filter(f => f.name.endsWith('.md'))
+      .sort((a, b) => b.name.localeCompare(a.name))
+      .slice(0, 5);
+    if (!mdFiles.length) return;
+
+    const totalCMS = list.filter(f => f.name.endsWith('.md')).length;
+    const articles = (await Promise.all(mdFiles.map(async (f) => {
+      try {
+        const r = await fetch(f.download_url);
+        if (!r.ok) return null;
+        const parsed = parseFrontmatter(await r.text());
+        if (parsed) parsed.slug = slugFromFilename(f.name);
+        return parsed;
+      } catch { return null; }
+    }))).filter(Boolean);
+
+    if (articles.length) {
+      renderArticlesList(articles, totalCMS, false);
+    }
+  } catch { /* CMS non raggiungibile → resta fallback */ }
+}
+
+loadCMSArticles();
+
+/* ============================================================
+   SCROLL REVEAL
+   ============================================================ */
+// L'observer serve solo per desktop, dove ha senso l'animazione.
+const obs = new IntersectionObserver(entries => {
+  entries.forEach((e, i) => {
+    if (e.isIntersecting) {
+      setTimeout(() => e.target.classList.add('in'), i * 80);
+      obs.unobserve(e.target);
+    }
+  });
+}, { threshold: 0, rootMargin: '0px' });
+
+document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
+
+// Fallback: se dopo 3s ci sono ancora elementi nascosti, li mostra comunque
+setTimeout(() => {
+  document.querySelectorAll('.reveal:not(.in)').forEach(el => el.classList.add('in'));
+}, 3000);
+
+</script>
+</body>
+</html>
